@@ -1,0 +1,442 @@
+@model IEnumerable<PryCafeteria.Models.ProductosTamanio>
+
+@{
+    ViewData["Title"] = "Variantes & Stock";
+    var total      = Model.Count();
+    var agotados   = Model.Count(x => x.Stock == 0);
+    var bajos      = Model.Count(x => x.Stock > 0 && x.Stock <= 5);
+    var enStock    = Model.Count(x => x.Stock > 5);
+    var valorTotal = Model.Sum(x => x.Precio * x.Stock);
+    var productos  = Model.Select(x => x.Producto?.NombreProducto).Distinct().OrderBy(x => x).ToList();
+    var tamanios   = Model.Select(x => x.Tamanio?.NombreTamanio).Distinct().OrderBy(x => x).ToList();
+    var categorias = Model.Select(x => x.Producto?.Categoria?.NombreCategoria).Where(c => c != null).Distinct().OrderBy(x => x).ToList();
+}
+
+<!-- ══ HEADER ══ -->
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title">Variantes &amp; Stock</h1>
+        <p class="page-subtitle">Precios y disponibilidad por producto y tamaño</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+        <a asp-action="ExportarExcel" class="btn-cancel" style="width:auto;padding:0.52rem 1rem;">
+            <i class="bi bi-file-earmark-excel" aria-hidden="true"></i> Exportar Excel
+        </a>
+        <a asp-action="Create" class="btn-cta btn-cta-pulse">
+            <i class="bi bi-plus-lg"></i> Nueva variante
+        </a>
+    </div>
+</div>
+
+<!-- ══ ALERTS ══ -->
+@if (TempData["Exito"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle-fill"></i> @TempData["Exito"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        <i class="bi bi-exclamation-circle-fill"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- ══ KPI CARDS ══ -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-blue"><i class="bi bi-diagram-3"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-value" id="kpi-total">@total</div>
+            <div class="kpi-label">Total variantes</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-green"><i class="bi bi-check-circle"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-value" id="kpi-en-stock">@enStock</div>
+            <div class="kpi-label">En stock</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-amber"><i class="bi bi-exclamation-triangle"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-value" id="kpi-bajos">@bajos</div>
+            <div class="kpi-label">Bajo stock</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-red"><i class="bi bi-x-circle"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-value" id="kpi-agotados">@agotados</div>
+            <div class="kpi-label">Sin stock</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-purple" style="flex-shrink:0;"><i class="bi bi-cash-coin"></i></div>
+        <div class="kpi-body" style="min-width:0;">
+            <div class="kpi-value" style="font-size:1.1rem;">S/ @valorTotal.ToString("N2")</div>
+            <div class="kpi-label">Valor total inv.</div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ SEARCH BAR ══ -->
+<div class="inv-search-bar">
+    <i class="bi bi-search inv-search-icon"></i>
+    <input type="text" id="globalSearch" class="inv-search-input"
+           placeholder="Buscar por producto o tamaño..." autocomplete="off" />
+    <span class="inv-search-count" id="searchCount">@total resultados</span>
+</div>
+
+<!-- ══ FILTERS ══ -->
+<div class="inv-filters">
+    <div class="inv-filter-group">
+        <label class="inv-filter-label"><i class="bi bi-cup-hot"></i> Producto</label>
+        <select id="filterProducto" class="inv-filter-select">
+            <option value="">Todos</option>
+            @foreach (var p in productos)
+            {
+                <option value="@p">@p</option>
+            }
+        </select>
+    </div>
+
+    <div class="inv-filter-group">
+        <label class="inv-filter-label"><i class="bi bi-rulers"></i> Tamaño</label>
+        <select id="filterTamanio" class="inv-filter-select">
+            <option value="">Todos</option>
+            @foreach (var t in tamanios)
+            {
+                <option value="@t">@t</option>
+            }
+        </select>
+    </div>
+
+    <div class="inv-filter-group">
+        <label class="inv-filter-label"><i class="bi bi-circle-half"></i> Estado</label>
+        <select id="filterEstado" class="inv-filter-select">
+            <option value="">Todos</option>
+            <option value="en-stock">En stock</option>
+            <option value="bajo">Bajo stock</option>
+            <option value="agotado">Sin stock</option>
+            <option value="pausado">Pausado</option>
+        </select>
+    </div>
+
+    <div class="inv-filter-group">
+        <label class="inv-filter-label"><i class="bi bi-grid"></i> Categoría</label>
+        <select id="filterCategoria" class="inv-filter-select">
+            <option value="">Todas</option>
+            @foreach (var cat in categorias)
+            {
+                <option value="@cat">@cat</option>
+            }
+        </select>
+    </div>
+
+    <div class="inv-filter-group">
+        <label class="inv-filter-label"><i class="bi bi-currency-dollar"></i> Precio máx.</label>
+        <div class="inv-price-wrap">
+            <input type="number" id="filterPrecioMax" class="inv-filter-select" placeholder="S/ máx" min="0" step="0.5" style="width:100px;" />
+        </div>
+    </div>
+
+    <div class="inv-filter-group">
+        <label class="inv-filter-label"><i class="bi bi-sort-alpha-down"></i> Ordenar</label>
+        <select id="filterOrden" class="inv-filter-select">
+            <option value="">Sin orden</option>
+            <option value="nombre-asc">Nombre A→Z</option>
+            <option value="nombre-desc">Nombre Z→A</option>
+            <option value="precio-asc">Precio ↑</option>
+            <option value="precio-desc">Precio ↓</option>
+            <option value="stock-asc">Stock ↑</option>
+            <option value="stock-desc">Stock ↓</option>
+        </select>
+    </div>
+
+    <button class="inv-filter-clear" id="clearFilters">
+        <i class="bi bi-x-lg"></i> Limpiar filtros
+    </button>
+</div>
+
+<!-- ══ DATA TABLE ══ -->
+<div class="data-card" style="overflow:visible;">
+    <div class="data-card-header">
+        <div style="display:flex;align-items:center;gap:12px;">
+            <span class="data-card-title">Variantes</span>
+            <span class="data-card-count" id="tableCount">@total</span>
+        </div>
+
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="bi bi-diagram-3"></i></div>
+            <div class="empty-state-title">Sin variantes registradas</div>
+            <div class="empty-state-sub">Crea la primera combinación producto + tamaño</div>
+        </div>
+    }
+    else
+    {
+        <div style="overflow-x:auto;">
+            <table class="modern-table inv-table" id="variantesTable">
+                <thead style="position:sticky;top:0;z-index:2;">
+                    <tr>
+                        <th>Producto</th>
+                        <th>Tamaño</th>
+                        <th class="col-price">Precio</th>
+                        <th class="col-stock">Stock</th>
+                        <th>Estado</th>
+                        <th class="col-actions">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="variantesBody">
+                    @foreach (var item in Model)
+                    {
+                        var stockMax = 20;
+                        var pct  = item.Stock == 0 ? 0 : Math.Min((double)item.Stock / stockMax * 100, 100);
+                        var pctDisplay = (int)pct;
+                        var stockClass = item.Stock == 0 ? "empty" : item.Stock <= 5 ? "low" : item.Stock <= 15 ? "med" : "";
+                        var estadoVal  = !item.Disponible ? "pausado" : item.Stock == 0 ? "agotado" : item.Stock <= 5 ? "bajo" : "en-stock";
+
+                        <tr class="inv-row"
+                            data-nombre="@(item.Producto?.NombreProducto?.ToLower())"
+                            data-tamanio="@(item.Tamanio?.NombreTamanio?.ToLower())"
+                            data-producto="@item.Producto?.NombreProducto"
+                            data-tamval="@item.Tamanio?.NombreTamanio"
+                            data-categoria="@item.Producto?.Categoria?.NombreCategoria"
+                            data-precio="@item.Precio.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                            data-stock="@item.Stock"
+                            data-estado="@estadoVal">
+
+                            <!-- Producto -->
+                            <td>
+                                <div class="product-cell">
+                                    @if (!string.IsNullOrEmpty(item.Producto?.Imagen))
+                                    {
+                                        <img src="@item.Producto.Imagen" alt="@item.Producto.NombreProducto" class="product-thumb" />
+                                    }
+                                    else
+                                    {
+                                        <div class="product-thumb-placeholder"><i class="bi bi-cup-hot"></i></div>
+                                    }
+                                    <div>
+                                        <div class="product-info-name">@item.Producto?.NombreProducto</div>
+                                        <div class="product-info-sub">@item.Producto?.Categoria?.NombreCategoria</div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Tamaño -->
+                            <td>
+                                <span class="badge-modern badge-categoria">@item.Tamanio?.NombreTamanio</span>
+                            </td>
+
+                            <!-- Precio -->
+                            <td class="col-price">
+                                <span class="cell-price">S/ @item.Precio.ToString("0.00")</span>
+                            </td>
+
+                            <!-- Stock -->
+                            <td class="col-stock">
+                                <div class="inv-stock-wrap">
+                                    <div class="inv-stock-header">
+                                        <span class="inv-stock-num">@item.Stock u.</span>
+                                        <span class="inv-stock-pct">@pctDisplay%</span>
+                                    </div>
+                                    <div class="inv-stock-bar">
+                                        <div class="inv-stock-fill @stockClass" style="width:@pct.ToString("0", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Estado -->
+                            <td>
+                                @if (!item.Disponible)
+                                {
+                                    <span class="badge-modern badge-nodisponible"><span class="dot"></span>Pausado</span>
+                                }
+                                else if (item.Stock == 0)
+                                {
+                                    <span class="badge-modern badge-agotado"><span class="dot"></span>Sin stock</span>
+                                }
+                                else if (item.Stock <= 5)
+                                {
+                                    <span class="badge-modern badge-bajo"><span class="dot"></span>Bajo stock</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-modern badge-disponible"><span class="dot"></span>En stock</span>
+                                }
+                            </td>
+
+                            <!-- Acciones (menú 3 puntos) -->
+                            <td class="col-actions">
+                                <div class="inv-menu-wrap">
+                                    <button class="inv-menu-btn" type="button"
+                                            onclick="toggleMenu(this)" aria-label="Acciones">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <div class="inv-dropdown">
+                                        <a asp-action="Details" asp-route-id="@item.ProductoTamanioId"
+                                           class="inv-dropdown-item">
+                                            <i class="bi bi-eye"></i> Ver detalles
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@item.ProductoTamanioId"
+                                           class="inv-dropdown-item">
+                                            <i class="bi bi-pencil"></i> Editar
+                                        </a>
+                                        <div class="inv-dropdown-divider"></div>
+                                        <button type="button" class="inv-dropdown-item inv-dropdown-danger"
+                                                onclick="confirmDelete('@item.ProductoTamanioId','@item.Producto?.NombreProducto','@item.Tamanio?.NombreTamanio')">
+                                            <i class="bi bi-trash3"></i> Eliminar
+                                        </button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Empty search state -->
+        <div class="empty-state" id="noResults" style="display:none;">
+            <div class="empty-state-icon"><i class="bi bi-search"></i></div>
+            <div class="empty-state-title">Sin resultados</div>
+            <div class="empty-state-sub">Prueba con otros filtros o términos de búsqueda</div>
+        </div>
+    }
+</div>
+
+<!-- ══ MODAL ELIMINAR ══ -->
+<div class="inv-modal-overlay" id="deleteModal">
+    <div class="inv-modal">
+        <div class="inv-modal-icon"><i class="bi bi-trash3"></i></div>
+        <div class="inv-modal-title">¿Eliminar variante?</div>
+        <div class="inv-modal-sub" id="deleteModalSub"></div>
+        <form id="deleteForm" method="post">
+            @Html.AntiForgeryToken()
+            <div class="inv-modal-actions">
+                <button type="submit" class="btn-danger-submit">
+                    <i class="bi bi-trash3"></i> Eliminar
+                </button>
+                <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+/* ──────────────────────────────────────────
+   LIVE SEARCH + FILTERS + SORT
+────────────────────────────────────────── */
+const rows = () => [...document.querySelectorAll('#variantesBody .inv-row')];
+const noRes = document.getElementById('noResults');
+const countEl = document.getElementById('tableCount');
+const searchCountEl = document.getElementById('searchCount');
+
+function applyFilters() {
+    const q      = (document.getElementById('globalSearch').value || '').toLowerCase();
+    const prod   = document.getElementById('filterProducto').value;
+    const tam    = document.getElementById('filterTamanio').value;
+    const estado = document.getElementById('filterEstado').value;
+    const cat    = document.getElementById('filterCategoria').value;
+    const maxP   = parseFloat(document.getElementById('filterPrecioMax').value) || Infinity;
+
+    let visible = 0;
+    rows().forEach(row => {
+        const nombre  = row.dataset.nombre || '';
+        const tamanio = row.dataset.tamanio || '';
+        const prodVal = row.dataset.producto || '';
+        const tamVal  = row.dataset.tamval || '';
+        const catVal  = row.dataset.categoria || '';
+        const precio  = parseFloat(row.dataset.precio) || 0;
+        const estVal  = row.dataset.estado || '';
+
+        const matchQ    = !q || nombre.includes(q) || tamanio.includes(q);
+        const matchProd = !prod || prodVal === prod;
+        const matchTam  = !tam  || tamVal  === tam;
+        const matchEst  = !estado || estVal === estado;
+        const matchCat  = !cat  || catVal  === cat;
+        const matchP    = precio <= maxP;
+
+        const show = matchQ && matchProd && matchTam && matchEst && matchCat && matchP;
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+
+    noRes.style.display  = visible === 0 ? '' : 'none';
+    countEl.textContent  = visible;
+    searchCountEl.textContent = visible + ' resultado' + (visible !== 1 ? 's' : '');
+}
+
+document.getElementById('globalSearch').addEventListener('input', applyFilters);
+document.getElementById('filterProducto').addEventListener('change', applyFilters);
+document.getElementById('filterTamanio').addEventListener('change', applyFilters);
+document.getElementById('filterEstado').addEventListener('change', applyFilters);
+document.getElementById('filterCategoria').addEventListener('change', applyFilters);
+document.getElementById('filterPrecioMax').addEventListener('input', applyFilters);
+document.getElementById('filterOrden').addEventListener('change', () => {
+    const val = document.getElementById('filterOrden').value;
+    if (!val) { applyFilters(); return; }
+    const [col, dir] = val.split('-');
+    const tbody = document.getElementById('variantesBody');
+    [...tbody.querySelectorAll('.inv-row')].sort((a, b) => {
+        if (col === 'nombre') {
+            const va = a.dataset.nombre || ''; const vb = b.dataset.nombre || '';
+            return dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+        } else {
+            const va = parseFloat(col === 'precio' ? a.dataset.precio : a.dataset.stock);
+            const vb = parseFloat(col === 'precio' ? b.dataset.precio : b.dataset.stock);
+            return dir === 'asc' ? va - vb : vb - va;
+        }
+    }).forEach(r => tbody.appendChild(r));
+    applyFilters();
+});
+
+document.getElementById('clearFilters').addEventListener('click', () => {
+    document.getElementById('globalSearch').value = '';
+    document.getElementById('filterProducto').value = '';
+    document.getElementById('filterTamanio').value = '';
+    document.getElementById('filterEstado').value = '';
+    document.getElementById('filterCategoria').value = '';
+    document.getElementById('filterPrecioMax').value = '';
+    document.getElementById('filterOrden').value = '';
+    applyFilters();
+});
+
+/* ── MENÚ 3 PUNTOS ── */
+function toggleMenu(btn) {
+    document.querySelectorAll('.inv-dropdown.open').forEach(d => {
+        if (d !== btn.nextElementSibling) d.classList.remove('open');
+    });
+    btn.nextElementSibling.classList.toggle('open');
+}
+document.addEventListener('click', e => {
+    if (!e.target.closest('.inv-menu-wrap')) {
+        document.querySelectorAll('.inv-dropdown.open').forEach(d => d.classList.remove('open'));
+    }
+});
+
+/* ── MODAL ELIMINAR ── */
+function confirmDelete(id, producto, tamanio) {
+    document.querySelectorAll('.inv-dropdown.open').forEach(d => d.classList.remove('open'));
+    document.getElementById('deleteModalSub').textContent =
+        'Se eliminará permanentemente: ' + producto + ' — ' + tamanio;
+    document.getElementById('deleteForm').action = '/ProductosTamanios/Delete/' + id;
+    document.getElementById('deleteModal').classList.add('open');
+}
+function closeModal() {
+    document.getElementById('deleteModal').classList.remove('open');
+}
+document.getElementById('deleteModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+});
+</script>
+}

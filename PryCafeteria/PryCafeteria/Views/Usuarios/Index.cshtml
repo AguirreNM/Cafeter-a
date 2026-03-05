@@ -1,0 +1,280 @@
+@model IEnumerable<PryCafeteria.Models.ViewModels.UsuarioViewModel>
+
+@{
+    ViewData["Title"] = "Usuarios";
+    var total = Model.Count();
+    bool esClientes = ViewBag.Tab == "clientes";
+}
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title">Gestión de usuarios</h1>
+        <p class="page-subtitle">Administra los accesos y roles del sistema</p>
+    </div>
+    @if (!esClientes)
+    {
+        <a asp-action="Create" class="btn-cta btn-cta-pulse">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i> Nuevo administrador
+        </a>
+    }
+</div>
+
+@if (TempData["Exito"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle-fill"></i> @TempData["Exito"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        <i class="bi bi-exclamation-circle-fill"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Info"] != null)
+{
+    <div class="alert alert-warning alert-dismissible fade show">
+        <i class="bi bi-info-circle-fill"></i> @TempData["Info"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Tabs -->
+<div class="tab-bar">
+    <a class="tab-item @(!esClientes ? "active" : "")"
+       asp-action="Index" asp-route-tab="admins">
+        <i class="bi bi-shield-check"></i> Administradores
+    </a>
+    <a class="tab-item @(esClientes ? "active" : "")"
+       asp-action="Index" asp-route-tab="clientes">
+        <i class="bi bi-people"></i> Clientes
+    </a>
+</div>
+
+<!-- Search: HU03-E7 en tiempo real con JS -->
+<form method="get" class="search-row" id="searchForm">
+    <input type="hidden" name="tab" value="@ViewBag.Tab" />
+    <div class="search-wrap">
+        <i class="bi bi-search search-icon"></i>
+        <input type="text" id="inputBuscar" name="buscar" value="@ViewBag.Buscar"
+               class="form-control" placeholder="Buscar por nombre o email…"
+               autocomplete="off" />
+    </div>
+    <button type="submit" class="btn-search">
+        <i class="bi bi-search"></i> Buscar
+    </button>
+    @if (!string.IsNullOrEmpty(ViewBag.Buscar as string))
+    {
+        <a asp-action="Index" asp-route-tab="@ViewBag.Tab" class="btn-clear">
+            <i class="bi bi-x"></i> Limpiar
+        </a>
+    }
+</form>
+
+<!-- Table -->
+<div class="data-card" style="overflow:visible;">
+    <div class="data-card-header">
+        <span class="data-card-title">@(esClientes ? "Clientes registrados" : "Administradores del sistema")</span>
+        <span class="data-card-count">@total</span>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="bi bi-people"></i></div>
+            <div class="empty-state-title">Sin usuarios encontrados</div>
+            <div class="empty-state-sub">Prueba con otros términos de búsqueda</div>
+        </div>
+    }
+    else
+    {
+        <div style="overflow-x:auto;">
+            <table class="modern-table inv-table">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Email</th>
+                        @if (!esClientes) { <th>Rol</th> }
+                        <th>Estado</th>
+                        <th>Registro</th>
+                        @if (esClientes) { <th>Pedidos</th> }
+                        @if (!esClientes) { <th class="col-actions">Acciones</th> }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var initial = string.IsNullOrEmpty(item.Nombre) ? "?" : item.Nombre.Substring(0, 1).ToUpper();
+                        var dataRow = $"{item.Nombre} {item.Apellido} {item.Email}".ToLower();
+                        <tr data-row="@dataRow">
+                            <td>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <div style="width:34px;height:34px;border-radius:50%;background:var(--green-100);border:1.5px solid var(--green-200);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:var(--green-800);flex-shrink:0;">
+                                        @initial
+                                    </div>
+                                    <div class="cell-primary">@item.Nombre @item.Apellido</div>
+                                </div>
+                            </td>
+                            <td class="cell-secondary">@item.Email</td>
+                            @if (!esClientes)
+                            {
+                                <td>
+                                    <span class="badge-modern badge-admin"><span class="dot" aria-hidden="true"></span>Admin</span>
+                                </td>
+                            }
+                            <td>
+                                @if (item.EstaBloqueado)
+                                {
+                                    <span class="badge-modern badge-nodisponible"><span class="dot" aria-hidden="true"></span>Bloqueado</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-modern badge-disponible"><span class="dot" aria-hidden="true"></span>Activo</span>
+                                }
+                            </td>
+                            <td class="cell-secondary cell-mono">
+                                @(item.FechaRegistro.HasValue ? item.FechaRegistro.Value.ToString("dd/MM/yyyy") : "—")
+                            </td>
+                            @if (esClientes)
+                            {
+                                <td>
+                                    <span class="badge-modern" style="background:var(--gray-100);color:var(--gray-700);font-weight:600;">
+                                        @item.TotalPedidos
+                                    </span>
+                                </td>
+                            }
+                            @if (!esClientes)
+                            {
+                                <td class="col-actions">
+                                    <div class="inv-menu-wrap">
+                                        <button class="inv-menu-btn" type="button" onclick="toggleMenu(this)" aria-label="Acciones">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <div class="inv-dropdown">
+                                            <a asp-action="Edit" asp-route-id="@item.Id" class="inv-dropdown-item">
+                                                <i class="bi bi-pencil"></i> Editar
+                                            </a>
+                                            <div class="inv-dropdown-divider"></div>
+                                            <button type="button" class="inv-dropdown-item inv-dropdown-danger"
+                                                    onclick="confirmDelUser('@item.Id','@item.Nombre @item.Apellido')">
+                                                <i class="bi bi-trash3"></i> Eliminar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<!-- Modal eliminar usuario -->
+<div class="inv-modal-overlay" id="userDeleteModal">
+    <div class="inv-modal">
+        <div class="inv-modal-icon"><i class="bi bi-person-x"></i></div>
+        <div class="inv-modal-title">¿Eliminar usuario?</div>
+        <div class="inv-modal-sub" id="userDeleteSub"></div>
+        <form id="userDeleteForm" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" id="userDeleteId" />
+            <div class="inv-modal-actions">
+                <button type="submit" class="btn-danger-submit">
+                    <i class="bi bi-trash3"></i> Eliminar
+                </button>
+                <button type="button" class="btn-cancel" onclick="closeUserModal()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Paginación: HU03-E12 -->
+@{
+    int paginaActual  = ViewBag.PaginaActual ?? 1;
+    int totalPaginas  = ViewBag.TotalPaginas ?? 1;
+    int totalRegs     = ViewBag.TotalRegistros ?? 0;
+}
+@if (totalPaginas > 1)
+{
+    <nav aria-label="Paginación usuarios" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px;">
+        <span style="font-size:.8rem;color:var(--gray-600);">Mostrando página @paginaActual de @totalPaginas (@totalRegs registros)</span>
+        <div style="display:flex;gap:4px;">
+            @if (paginaActual > 1)
+            {
+                <a asp-action="Index" asp-route-tab="@ViewBag.Tab" asp-route-buscar="@ViewBag.Buscar" asp-route-pagina="@(paginaActual - 1)"
+                   style="padding:5px 11px;border:1px solid var(--border);border-radius:6px;background:#fff;font-size:.82rem;text-decoration:none;color:var(--gray-700);">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            }
+            @for (int p = Math.Max(1, paginaActual - 2); p <= Math.Min(totalPaginas, paginaActual + 2); p++)
+            {
+                <a asp-action="Index" asp-route-tab="@ViewBag.Tab" asp-route-buscar="@ViewBag.Buscar" asp-route-pagina="@p"
+                   style="padding:5px 11px;border:1px solid @(p == paginaActual ? "var(--green-800)" : "var(--border)");border-radius:6px;background:@(p == paginaActual ? "var(--green-800)" : "#fff");font-size:.82rem;text-decoration:none;color:@(p == paginaActual ? "#fff" : "var(--gray-700)");font-weight:@(p == paginaActual ? "700" : "400");">
+                    @p
+                </a>
+            }
+            @if (paginaActual < totalPaginas)
+            {
+                <a asp-action="Index" asp-route-tab="@ViewBag.Tab" asp-route-buscar="@ViewBag.Buscar" asp-route-pagina="@(paginaActual + 1)"
+                   style="padding:5px 11px;border:1px solid var(--border);border-radius:6px;background:#fff;font-size:.82rem;text-decoration:none;color:var(--gray-700);">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            }
+        </div>
+    </nav>
+}
+
+@section Scripts {
+<script>
+// ── Buscador en tiempo real (HU03-E7) ─────────────────────────────────
+const input = document.getElementById('inputBuscar');
+const rows  = document.querySelectorAll('tbody tr[data-row]');
+let timer;
+input?.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+        const q = input.value.toLowerCase().trim();
+        if (q.length === 0) {
+            // Si la búsqueda se vació, mostrar todas las filas (en la página actual)
+            rows.forEach(r => r.style.display = '');
+            return;
+        }
+        rows.forEach(r => {
+            const texto = r.getAttribute('data-row')?.toLowerCase() ?? '';
+            r.style.display = texto.includes(q) ? '' : 'none';
+        });
+    }, 200);
+});
+
+// ── Menú desplegable ────────────────────────────────────────────────
+function toggleMenu(btn) {
+    document.querySelectorAll('.inv-dropdown.open').forEach(d => {
+        if (d !== btn.nextElementSibling) d.classList.remove('open');
+    });
+    btn.nextElementSibling.classList.toggle('open');
+}
+document.addEventListener('click', e => {
+    if (!e.target.closest('.inv-menu-wrap'))
+        document.querySelectorAll('.inv-dropdown.open').forEach(d => d.classList.remove('open'));
+});
+
+// ── Modal eliminar ───────────────────────────────────────────────────
+function confirmDelUser(id, nombre) {
+    document.querySelectorAll('.inv-dropdown.open').forEach(d => d.classList.remove('open'));
+    document.getElementById('userDeleteSub').textContent = 'Se eliminará permanentemente: ' + nombre;
+    document.getElementById('userDeleteId').value = id;
+    document.getElementById('userDeleteForm').action = '/Usuarios/Delete';
+    document.getElementById('userDeleteModal').classList.add('open');
+}
+function closeUserModal() {
+    document.getElementById('userDeleteModal').classList.remove('open');
+}
+document.getElementById('userDeleteModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeUserModal();
+});
+</script>
+}

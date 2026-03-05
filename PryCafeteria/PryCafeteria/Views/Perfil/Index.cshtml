@@ -1,0 +1,146 @@
+@model PerfilViewModel
+@using PryCafeteria.Controllers
+@{
+    ViewData["Title"] = "Mi perfil";
+    var esAdmin = User.IsInRole("Admin");
+    Layout = esAdmin ? "~/Views/Shared/_Layout.cshtml" : "~/Views/Shared/_LayoutCliente.cshtml";
+}
+
+<div style="max-width:600px;@(esAdmin ? "" : "margin:0 auto;")">
+    <h1 style="font-size:1.3rem;font-weight:800;color:#111827;margin-bottom:20px;">
+        <i class="bi bi-person-circle me-2"></i>Mi perfil
+    </h1>
+
+    @if (TempData["Exito"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Exito"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ExitoPassword"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>@TempData["ExitoPassword"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorPassword"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["ErrorPassword"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Avatar + datos básicos -->
+    <div style="background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);overflow:hidden;margin-bottom:16px;">
+        <div style="background:linear-gradient(135deg,#1B4332,#2d6a4f);padding:24px;display:flex;align-items:center;gap:16px;">
+            <div style="width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.2);border:3px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;color:#fff;">
+                @((Model.Nombre.Length > 0 ? Model.Nombre[0].ToString() : "U").ToUpper())
+            </div>
+            <div>
+                <p style="font-weight:800;color:#fff;font-size:1.1rem;margin:0;">@Model.Nombre @Model.Apellido</p>
+                <p style="color:rgba(255,255,255,.7);font-size:.85rem;margin:0;">@Model.Email</p>
+                <span style="background:rgba(255,255,255,.2);color:#fff;padding:2px 10px;border-radius:20px;font-size:.73rem;font-weight:600;margin-top:6px;display:inline-block;">
+                    @(esAdmin ? "Administrador" : "Cliente")
+                </span>
+            </div>
+        </div>
+
+        <!-- Editar datos personales -->
+        <div style="padding:20px 24px;">
+            <h3 style="font-size:.9rem;font-weight:700;color:#374151;margin-bottom:14px;">Datos personales</h3>
+            <form asp-action="Index" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger" style="font-size:.85rem;margin-bottom:10px;"></div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+                    <div>
+                        <label asp-for="Nombre" style="font-size:.82rem;font-weight:600;color:#374151;display:block;margin-bottom:5px;">Nombre</label>
+                        <input asp-for="Nombre" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:.88rem;box-sizing:border-box;" />
+                        <span asp-validation-for="Nombre" class="text-danger" style="font-size:.78rem;"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Apellido" style="font-size:.82rem;font-weight:600;color:#374151;display:block;margin-bottom:5px;">Apellido</label>
+                        <input asp-for="Apellido" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:.88rem;box-sizing:border-box;" />
+                        <span asp-validation-for="Apellido" class="text-danger" style="font-size:.78rem;"></span>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:14px;">
+                    <label style="font-size:.82rem;font-weight:600;color:#374151;display:block;margin-bottom:5px;">Correo electrónico</label>
+                    <input value="@Model.Email" disabled
+                           style="width:100%;padding:9px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:.88rem;background:#f9fafb;color:#9ca3af;box-sizing:border-box;" />
+                    <p style="font-size:.75rem;color:#9ca3af;margin:4px 0 0;">El correo no puede modificarse.</p>
+                </div>
+
+                <button type="submit"
+                        style="padding:9px 24px;background:#1B4332;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:.88rem;cursor:pointer;">
+                    <i class="bi bi-floppy me-1"></i>Guardar cambios
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cambiar contraseña -->
+    <div style="background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:20px 24px;margin-bottom:16px;">
+        <h3 style="font-size:.9rem;font-weight:700;color:#374151;margin-bottom:14px;">
+            <i class="bi bi-shield-lock me-2 text-success"></i>Cambiar contraseña
+        </h3>
+        <form asp-action="CambiarPassword" method="post">
+            @Html.AntiForgeryToken()
+            <div style="display:flex;flex-direction:column;gap:12px;">
+                <div>
+                    <label style="font-size:.82rem;font-weight:600;color:#374151;display:block;margin-bottom:5px;">Contraseña actual</label>
+                    <input type="password" name="PasswordActual"
+                           style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:.88rem;box-sizing:border-box;" />
+                </div>
+                <div>
+                    <label style="font-size:.82rem;font-weight:600;color:#374151;display:block;margin-bottom:5px;">Nueva contraseña</label>
+                    <input type="password" name="NuevaPassword"
+                           style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:.88rem;box-sizing:border-box;" />
+                </div>
+                <div>
+                    <label style="font-size:.82rem;font-weight:600;color:#374151;display:block;margin-bottom:5px;">Confirmar nueva contraseña</label>
+                    <input type="password" name="ConfirmarPassword"
+                           style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:.88rem;box-sizing:border-box;" />
+                </div>
+                <div>
+                    <button type="submit"
+                            style="padding:9px 24px;background:#374151;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:.88rem;cursor:pointer;">
+                        <i class="bi bi-key me-1"></i>Cambiar contraseña
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Accesos rápidos para clientes -->
+    @if (!esAdmin)
+    {
+        <div style="background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:16px 20px;">
+            <h3 style="font-size:.9rem;font-weight:700;color:#374151;margin-bottom:12px;">Accesos rápidos</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <a asp-controller="Pedidos" asp-action="MisPedidos"
+                   style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none;color:#374151;font-size:.85rem;font-weight:600;">
+                    <i class="bi bi-bag-check" style="color:#1B4332;"></i>Mis pedidos
+                </a>
+                <a asp-controller="Direcciones" asp-action="Index"
+                   style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none;color:#374151;font-size:.85rem;font-weight:600;">
+                    <i class="bi bi-geo-alt" style="color:#1B4332;"></i>Mis direcciones
+                </a>
+                <a asp-controller="Catalogo" asp-action="Index"
+                   style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none;color:#374151;font-size:.85rem;font-weight:600;">
+                    <i class="bi bi-cup-hot" style="color:#1B4332;"></i>Ver menú
+                </a>
+                <a asp-controller="Carrito" asp-action="Index"
+                   style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none;color:#374151;font-size:.85rem;font-weight:600;">
+                    <i class="bi bi-cart3" style="color:#1B4332;"></i>Mi carrito
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }

@@ -1,0 +1,90 @@
+@model IEnumerable<PryCafeteria.Models.Pedido>
+@{
+    ViewData["Title"] = "Mis pedidos";
+    Layout = "~/Views/Shared/_LayoutCliente.cshtml";
+    var filtro = ViewBag.FiltroEstado as string;
+}
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+    <h1 style="font-size:1.4rem;font-weight:800;color:#111827;margin:0;">
+        <i class="bi bi-bag-check me-2"></i>Mis pedidos
+    </h1>
+
+    <!-- Filtros de estado -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        @foreach (var est in new[] { (null, "Todos"), ("Pendiente", "🟡 Pendiente"), ("EnProceso", "🟣 En preparación"), ("Listo", "🟠 Listo"), ("Entregado", "🟢 Entregado"), ("Cancelado", "🔴 Cancelado") })
+        {
+            <a asp-controller="Pedidos" asp-action="MisPedidos" asp-route-estado="@est.Item1"
+               style="padding:5px 12px;border-radius:20px;font-size:.8rem;text-decoration:none;@(filtro == est.Item1 ? "background:#1B4332;color:#fff;font-weight:700;" : "background:#f3f4f6;color:#374151;")">
+                @est.Item2
+            </a>
+        }
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div style="text-align:center;padding:60px 20px;background:#fff;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+        <i class="bi bi-bag-x" style="font-size:3rem;color:#d1d5db;"></i>
+        <p style="margin-top:12px;color:#6b7280;">No tienes pedidos aún.</p>
+        <a asp-controller="Catalogo" asp-action="Index"
+           style="display:inline-block;margin-top:10px;padding:9px 24px;background:#1B4332;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">
+            Ir al menú
+        </a>
+    </div>
+}
+else
+{
+    <div style="display:flex;flex-direction:column;gap:12px;">
+        @foreach (var pedido in Model)
+        {
+            var (bg, color, emoji) = pedido.Estado switch
+            {
+                "Pendiente"  => ("#fef3c7", "#92400e", "🟡"),
+                "EnProceso"  => ("#ede9fe", "#5b21b6", "🟣"),
+                "Listo"      => ("#ffedd5", "#9a3412", "🟠"),
+                "Entregado"  => ("#dcfce7", "#166534", "🟢"),
+                "Cancelado"  => ("#fee2e2", "#991b1b", "🔴"),
+                _            => ("#f3f4f6", "#374151", "⚪")
+            };
+
+            <div style="background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:18px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+                <!-- Número y fecha -->
+                <div style="min-width:100px;">
+                    <p style="font-weight:800;color:#111827;margin:0 0 2px;font-size:.95rem;">#@pedido.PedidoId</p>
+                    <p style="color:#9ca3af;font-size:.78rem;margin:0;">@pedido.FechaPedido.ToString("dd/MM/yyyy HH:mm")</p>
+                </div>
+                <!-- Productos (resumen) -->
+                <div style="flex:1;min-width:160px;">
+                    <p style="color:#374151;font-size:.85rem;margin:0;">
+                        @pedido.DetallePedidos.Count producto(s) — @pedido.MetodoPago.NombreMetodoPago
+                    </p>
+                </div>
+                <!-- Total -->
+                <div style="text-align:right;min-width:80px;">
+                    <p style="font-weight:800;color:#1B4332;font-size:1rem;margin:0;">S/. @pedido.Total.ToString("0.00")</p>
+                </div>
+                <!-- Estado -->
+                <span style="background:@bg;color:@color;padding:4px 12px;border-radius:20px;font-size:.78rem;font-weight:700;white-space:nowrap;">
+                    @emoji @pedido.Estado
+                </span>
+                <!-- Acciones -->
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <a asp-controller="Pedidos" asp-action="Detalle" asp-route-id="@pedido.PedidoId"
+                       style="padding:6px 14px;border:1px solid #d1d5db;border-radius:7px;font-size:.82rem;color:#374151;text-decoration:none;font-weight:600;">
+                        Ver detalle
+                    </a>
+                    @if (pedido.Estado == "Pendiente")
+                    {
+                        <form asp-controller="Pedidos" asp-action="Cancelar" asp-route-id="@pedido.PedidoId" method="post" style="margin:0;">
+                            <button type="submit" onclick="return confirm('¿Cancelar pedido #@pedido.PedidoId?')"
+                                    style="padding:6px 14px;border:1px solid #fca5a5;border-radius:7px;font-size:.82rem;color:#ef4444;background:none;cursor:pointer;font-weight:600;">
+                                Cancelar
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}

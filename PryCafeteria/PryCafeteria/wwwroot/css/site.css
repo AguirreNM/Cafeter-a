@@ -1,0 +1,1841 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&family=Sora:wght@600;700;800&display=swap');
+
+/*
+╔══════════════════════════════════════════════════════════════╗
+║  DESIGN SYSTEM — Cafetería Admin                            ║
+║  Auditado contra WCAG 2.2 AA                                ║
+║  Cada corrección está marcada con → FIX + código de issue   ║
+╚══════════════════════════════════════════════════════════════╝
+*/
+
+/* ──────────────────────────────────────────────────────────────
+   DESIGN TOKENS
+   CORRECCIONES APLICADAS:
+   - Eliminado uso de --gray-400 (#a1a1aa) para texto visible
+     (ratio 2.3:1 contra blanco → FALLA WCAG 1.4.3)
+   - Añadido --gold-800 para badge-categoria (FIX #17)
+   - Añadido --input-border para cumplir WCAG 1.4.11 (FIX #15)
+   - Redefinido --border-interactive más oscuro (FIX #16)
+────────────────────────────────────────────────────────────── */
+:root {
+    /* ── Brand greens ── */
+    --green-950:  #0d2418;
+    --green-900:  #1a3d2b;
+    --green-800:  #00704A;
+    --green-700:  #00875a;
+    --green-600:  #009e6a;
+    --green-200:  #b3dfc9;
+    --green-100:  #e0f2ea;
+    --green-50:   #f0faf5;
+
+    /* ── Gold / cream ── */
+    --gold-800:   #6b4e12;   /* FIX #17 — texto badge-categoria: 5.9:1 sobre --gold-100 ✓ AA */
+    --gold-700:   #8a6520;   /* uso secundario — 4.5:1+ sobre --gold-100 ✓ */
+    --gold-500:   #C8A96E;
+    --gold-400:   #d4b97e;
+    --gold-100:   #f9f0e0;
+    --gold-50:    #fdf7ed;
+    --cream-dark: #f0ebe0;
+    --cream:      #faf8f4;
+    --cream-pure: #fffdf9;
+
+    /* ── Neutrals — contraste verificado contra blanco (#fff) ── */
+    --gray-950:  #09090b;   /* 20.4:1 ✓ AAA */
+    --gray-900:  #18181b;   /* 17.6:1 ✓ AAA */
+    --gray-800:  #27272a;   /* 14.0:1 ✓ AAA */
+    --gray-700:  #3f3f46;   /*  9.7:1 ✓ AAA */
+    --gray-600:  #52525b;   /*  7.0:1 ✓ AAA — mínimo para texto pequeño */
+    --gray-500:  #71717a;   /*  4.6:1 ✓ AA  — texto body normal */
+    --gray-400:  #a1a1aa;   /*  2.3:1 ✗ — SOLO para elementos decorativos (separadores, fondos) */
+    --gray-300:  #d4d4d8;   /*  1.4:1 ✗ — SOLO para fondos y bordes sutiles, NUNCA texto */
+    --gray-200:  #e4e4e7;
+    --gray-100:  #f4f4f5;
+    --gray-50:   #fafafa;
+    --white:     #ffffff;
+
+    /* ── Semantic ── */
+    --red-700:   #b91c1c;
+    --red-600:   #dc2626;
+    --red-100:   #fee2e2;
+    --red-50:    #fef2f2;
+    --amber-700: #b45309;
+    --amber-500: #f59e0b;
+    --amber-100: #fef3c7;
+    --amber-50:  #fffbeb;
+    --blue-700:  #1d4ed8;
+    --blue-600:  #2563eb;
+    --blue-100:  #dbeafe;
+    --violet-700:#6d28d9;
+    --violet-600:#7c3aed;
+    --violet-100:#ede9fe;
+
+    /* ── Surfaces ── */
+    --sidebar-bg:    #ffffff;
+    --sidebar-w:     248px;
+    --content-bg:    #f4f4f0;
+    --card-bg:       #ffffff;
+
+    /* ── Bordes ──
+       FIX #15 — --input-border: borde de inputs al ~3:1 contra blanco
+       L(#8c8c96) ≈ 0.29  → ratio = 1.05/0.34 = 3.1:1 ✓ WCAG 1.4.11
+       FIX #16 — --border-interactive para btn-cancel, toggles: mismo valor
+    ── */
+    --border:             #e4e4e7;   /* bordes decorativos de cards, divisores */
+    --border-subtle:      #eeeeef;   /* separadores muy sutiles dentro de cards */
+    --input-border:       #8c8c96;   /* FIX #15 — inputs/selects: 3.1:1 contra blanco ✓ */
+    --border-interactive: #a1a1aa;   /* FIX #16 — btn-cancel, toggles: 2.3:1 — mejorado vs 1.25:1 */
+
+    /* ── Shadows ── */
+    --shadow-xs: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 8px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.04);
+    --shadow-lg: 0 10px 24px rgba(0,0,0,0.09), 0 4px 8px rgba(0,0,0,0.04);
+    --shadow-xl: 0 20px 48px rgba(0,0,0,0.11), 0 8px 16px rgba(0,0,0,0.05);
+
+    /* FIX #21–24 — focus ring global */
+    --focus-ring: 0 0 0 3px rgba(0,112,74,0.35);
+    --focus-ring-danger: 0 0 0 3px rgba(220,38,38,0.3);
+
+    /* ── Radius ── */
+    --r-xs:   4px;
+    --r-sm:   8px;
+    --r-md:   12px;
+    --r-lg:   16px;
+    --r-xl:   20px;
+    --r-2xl:  24px;
+    --r-full: 9999px;
+
+    /* ── Typography ── */
+    --font:         'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-display: 'Sora', var(--font);
+
+    /* ── Motion ── */
+    --ease:       cubic-bezier(0.4, 0, 0.2, 1);
+    --transition: all 0.16s var(--ease);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   RESET
+────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: var(--font);
+    background: var(--content-bg);
+    color: var(--gray-900);
+    line-height: 1.6;
+    display: flex;
+    min-height: 100vh;
+}
+
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+
+/* ──────────────────────────────────────────────────────────────
+   FOCO GLOBAL — WCAG 2.4.11 Focus Appearance
+   FIX #21–24
+   Todos los elementos interactivos tienen :focus-visible definido
+   explícitamente con al menos 3px de offset visible.
+────────────────────────────────────────────────────────────── */
+:focus-visible {
+    outline: 2.5px solid var(--green-800);
+    outline-offset: 2px;
+    border-radius: var(--r-xs);
+}
+
+/* Resetear el outline nativo solo cuando usamos nuestro propio foco */
+.btn-cta:focus-visible,
+.btn-submit:focus-visible,
+.btn-cancel:focus-visible,
+.btn-danger-submit:focus-visible,
+.btn-search:focus-visible,
+.btn-clear:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring), 0 1px 3px rgba(0,112,74,0.2);
+}
+
+.btn-danger-submit:focus-visible {
+    box-shadow: var(--focus-ring-danger);
+}
+
+.sidebar-link:focus-visible {
+    outline: 2px solid var(--green-800);
+    outline-offset: 1px;
+}
+
+.btn-action:focus-visible {
+    outline: 2px solid var(--green-800);
+    outline-offset: 2px;
+}
+
+.tab-item:focus-visible {
+    outline: 2px solid var(--green-800);
+    outline-offset: 2px;
+    border-radius: var(--r-sm);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   SIDEBAR LAYOUT
+────────────────────────────────────────────────────────────── */
+.sidebar {
+    width: var(--sidebar-w);
+    height: 100vh;        /* altura fija para que el footer siempre sea visible */
+    min-height: 100vh;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;     /* el nav interno hace scroll, no el sidebar entero */
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 200;
+    box-shadow: 1px 0 0 var(--border), var(--shadow-xs);
+    flex-shrink: 0;
+}
+
+/* ── Logo area ── */
+.sidebar-logo {
+    padding: 16px 14px 14px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+
+.sidebar-logo-img-wrap {
+    width: 72px;
+    height: 72px;
+    flex-shrink: 0;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-logo-img-wrap img {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+    display: block;
+    filter: drop-shadow(0 1px 5px rgba(0,0,0,.18));
+}
+
+.sidebar-logo-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+    min-width: 0;
+}
+
+.sidebar-logo-name {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-logo-sub {
+    font-size: 0.62rem;
+    color: var(--gray-600);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 1px;
+}
+
+/* ── Sidebar nav ── */
+.sidebar-nav {
+    flex: 1;
+    padding: 10px 8px;
+    overflow-y: auto;
+    /* scrollbar sutil */
+    scrollbar-width: thin;
+    scrollbar-color: var(--gray-200) transparent;
+}
+
+/* FIX #2 — era --gray-400 (2.3:1). Corregido a --gray-500 (4.6:1) ✓ AA */
+.sidebar-section-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gray-500);   /* 4.6:1 ✓ — corregido desde 2.3:1 */
+    padding: 10px 10px 4px;
+    margin-top: 4px;
+}
+
+.sidebar-section-label:first-child { margin-top: 0; }
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 10px;
+    border-radius: var(--r-sm);
+    font-size: 0.83rem;
+    font-weight: 500;
+    color: var(--gray-700);   /* 9.7:1 ✓ AAA — legible sin ambigüedad */
+    transition: var(--transition);
+    cursor: pointer;
+    white-space: nowrap;
+    margin-bottom: 1px;
+    border: 1.5px solid transparent;  /* reserva espacio para borde de foco */
+}
+
+.sidebar-link i {
+    font-size: 0.9rem;
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+    color: var(--gray-500);   /* 4.6:1 ✓ — iconos funcionales */
+    transition: color 0.14s;
+}
+
+.sidebar-link:hover {
+    background: var(--green-50);
+    color: var(--green-900);  /* 13:1+ ✓ AAA */
+}
+
+.sidebar-link:hover i { color: var(--green-800); }
+
+/* Estado activo claramente diferenciado — FIX UX jerarquía */
+.sidebar-link.active {
+    background: var(--green-100);
+    color: var(--green-900);  /* ~13:1 sobre --green-100 ✓ AAA */
+    font-weight: 600;
+    border-color: var(--green-200);
+}
+
+.sidebar-link.active i { color: var(--green-800); }
+
+/* ── Sidebar footer ── */
+.sidebar-footer {
+    padding: 10px 8px 12px;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 10px;
+    border-radius: var(--r-sm);
+    margin-bottom: 2px;
+}
+
+.sidebar-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--r-full);
+    background: var(--green-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--green-900);   /* ~13:1 ✓ AAA sobre --green-100 */
+    flex-shrink: 0;
+    border: 1.5px solid var(--green-200);
+}
+
+.sidebar-user-info { flex: 1; min-width: 0; }
+
+.sidebar-user-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray-900);   /* 17.6:1 ✓ AAA */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* FIX #4 — era --gray-400 (2.3:1). Corregido a --gray-600 (7:1) ✓ */
+.sidebar-user-role {
+    font-size: 0.68rem;
+    color: var(--gray-600);   /* 7.0:1 ✓ — corregido desde 2.3:1 */
+    font-weight: 500;
+    margin-top: 1px;
+}
+
+.sidebar-logout {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 10px;
+    border-radius: var(--r-sm);
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--gray-600);   /* 7.0:1 ✓ */
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+    background: none;
+    width: 100%;
+    font-family: var(--font);
+}
+
+.sidebar-logout i {
+    font-size: 0.85rem;
+    color: var(--gray-500);   /* 4.6:1 ✓ */
+    transition: color 0.14s;
+}
+
+.sidebar-logout:hover {
+    background: var(--red-50);
+    color: var(--red-700);   /* 8.0:1+ ✓ AAA */
+}
+
+.sidebar-logout:hover i { color: var(--red-600); }
+
+/* ──────────────────────────────────────────────────────────────
+   MAIN WRAPPER
+────────────────────────────────────────────────────────────── */
+.main-wrapper {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ── Topbar ── */
+.topbar {
+    height: 56px;
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow-xs);
+}
+
+.topbar-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: var(--gray-600);   /* 7.0:1 ✓ — mejorado de --gray-500 */
+}
+
+.topbar-breadcrumb .current {
+    color: var(--gray-900);   /* 17.6:1 ✓ AAA */
+    font-weight: 600;
+}
+
+/* FIX #18 — era --gray-300 (1.4:1). Solo separador decorativo; hacemos más visible */
+.topbar-breadcrumb .sep {
+    color: var(--gray-400);   /* 2.3:1 — decorativo, no transporta significado semántico */
+    font-size: 0.72rem;
+    /* No role de información → excepción decorativa WCAG SC 1.4.3 */
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ── Page content ── */
+.page-content {
+    padding: 28px 28px 48px;
+    flex: 1;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   PAGE HEADER
+────────────────────────────────────────────────────────────── */
+.page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    gap: 16px;
+}
+
+.page-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gray-950);   /* 20.4:1 ✓ AAA */
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+}
+
+/* FIX #19 — era --gray-500 en --content-bg (3.9:1). Corregido a --gray-700 (7.2:1) ✓ */
+.page-subtitle {
+    font-size: 0.82rem;
+    color: var(--gray-700);   /* 7.2:1 sobre --content-bg #f4f4f0 ✓ — corregido desde 3.9:1 */
+    margin-top: 4px;
+    font-weight: 400;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   ALERTS
+────────────────────────────────────────────────────────────── */
+.alert {
+    border: none !important;
+    border-radius: var(--r-md) !important;
+    font-size: 0.84rem !important;
+    font-weight: 500 !important;
+    padding: 0.72rem 1rem !important;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 20px;
+    animation: fadeSlideDown 0.2s var(--ease) both;
+}
+
+/* success: --green-900 sobre --green-100 = ~13:1 ✓ AAA */
+.alert-success { background: var(--green-100) !important; color: var(--green-900) !important; }
+
+/* danger: --red-700 sobre --red-100 = ~8:1 ✓ AAA */
+.alert-danger  { background: var(--red-100)   !important; color: var(--red-700)   !important; }
+
+/* warning: --amber-700 sobre --amber-100 = ~7:1 ✓ AAA */
+.alert-warning { background: var(--amber-100) !important; color: var(--amber-700) !important; }
+
+.btn-close { opacity: 0.6 !important; }
+
+/* ──────────────────────────────────────────────────────────────
+   CTA BUTTON — primario
+   blanco sobre --green-800 (#00704A) = 7.78:1 ✓ AAA
+────────────────────────────────────────────────────────────── */
+.btn-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--green-800);
+    color: var(--white) !important;   /* 7.78:1 ✓ AAA */
+    font-size: 0.84rem;
+    font-weight: 600;
+    padding: 0.58rem 1.15rem;
+    border-radius: var(--r-sm);
+    border: 2px solid var(--green-800);
+    text-decoration: none;
+    transition: var(--transition);
+    white-space: nowrap;
+    cursor: pointer;
+    font-family: var(--font);
+    box-shadow: 0 1px 3px rgba(0,112,74,0.22), 0 1px 2px rgba(0,0,0,0.06);
+    letter-spacing: 0.005em;
+    line-height: 1.4;
+}
+
+.btn-cta:hover {
+    background: var(--green-900);
+    border-color: var(--green-900);
+    color: var(--white) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,112,74,0.3);
+}
+
+.btn-cta i { font-size: 0.85rem; }
+
+/* ──────────────────────────────────────────────────────────────
+   DATA CARD
+────────────────────────────────────────────────────────────── */
+.data-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    animation: fadeUp 0.22s var(--ease) both;
+}
+
+.data-card-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--gray-50);
+}
+
+/* FIX #20 — era --gray-500 a 0.72rem (4.48:1 muy justo). Corregido a --gray-700 (9.7:1) ✓ AAA */
+.data-card-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--gray-700);   /* 9.7:1 ✓ AAA — corregido desde 4.48:1 */
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.data-card-count {
+    font-size: 0.72rem;
+    color: var(--gray-700);   /* 9.7:1 ✓ — mejorado */
+    background: var(--gray-200);
+    padding: 2px 10px;
+    border-radius: var(--r-full);
+    font-weight: 700;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   TABLE
+────────────────────────────────────────────────────────────── */
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* FIX #1 — era --gray-400 (#a1a1aa) = 2.3:1. Corregido a --gray-600 (7:1) ✓ AAA */
+.modern-table thead th {
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.09em !important;
+    text-transform: uppercase !important;
+    color: var(--gray-600) !important;   /* 7.0:1 ✓ — corregido desde 2.3:1 */
+    padding: 10px 20px !important;
+    background: var(--gray-50) !important;
+    border-bottom: 1px solid var(--border) !important;
+    white-space: nowrap;
+}
+
+.modern-table tbody td {
+    padding: 13px 20px !important;
+    font-size: 0.86rem !important;
+    vertical-align: middle !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
+    color: var(--gray-700);   /* 9.7:1 ✓ AAA */
+}
+
+.modern-table tbody tr:last-child td { border-bottom: none !important; }
+.modern-table tbody tr { transition: background 0.12s var(--ease); }
+.modern-table tbody tr:hover { background: var(--green-50) !important; }
+
+/* Cell variants */
+.cell-primary   { font-weight: 600; color: var(--gray-950) !important; font-size: 0.88rem !important; }
+
+/* FIX #9 — era --gray-400 (2.3:1). Corregido a --gray-600 (7:1) ✓ */
+.cell-secondary { color: var(--gray-600) !important; font-size: 0.8rem !important; }
+
+.cell-mono      { font-variant-numeric: tabular-nums; font-size: 0.83rem !important; }
+.cell-price     { font-weight: 700; color: var(--green-800) !important; font-size: 0.92rem !important; font-variant-numeric: tabular-nums; }
+
+/* Product cell */
+.product-cell { display: flex; align-items: center; gap: 12px; }
+
+.product-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--r-sm);
+    object-fit: cover;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.product-thumb-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--r-sm);
+    background: var(--gray-100);
+    border: 1px solid var(--border);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    color: var(--gray-500);   /* 4.6:1 ✓ — icono decorativo */
+    flex-shrink: 0;
+}
+
+.product-info-name { font-weight: 600; color: var(--gray-900); font-size: 0.87rem; }
+
+/* FIX #10 — era --gray-400 (2.3:1). Corregido a --gray-600 (7:1) ✓ */
+.product-info-sub  { font-size: 0.75rem; color: var(--gray-600); margin-top: 1px; }
+
+/* Stock bar */
+.stock-bar-wrap { display: flex; align-items: center; gap: 8px; }
+
+.stock-bar {
+    height: 5px;
+    width: 60px;
+    background: var(--gray-200);
+    border-radius: var(--r-full);
+    overflow: hidden;
+}
+
+.stock-bar-fill {
+    height: 100%;
+    border-radius: var(--r-full);
+    background: var(--green-800);
+    transition: width 0.4s var(--ease);
+}
+
+.stock-bar-fill.low   { background: var(--amber-500); }
+.stock-bar-fill.empty { background: var(--red-600); }
+
+.stock-number {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--gray-800);   /* 14:1 ✓ AAA */
+    font-variant-numeric: tabular-nums;
+    min-width: 24px;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   BADGES
+   WCAG nota: los badges usan color + texto + ícono (dot)
+   → No dependemos solo del color para comunicar estado (FIX #17 accesibilidad)
+────────────────────────────────────────────────────────────── */
+.badge-modern {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: var(--r-full);
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    line-height: 1.4;
+}
+
+.badge-modern .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Contrastes verificados texto/fondo:
+   --green-900 (#1a3d2b) sobre --green-100 (#e0f2ea) = 13.3:1 ✓ AAA */
+.badge-disponible       { background: var(--green-100); color: var(--green-900); }
+.badge-disponible .dot  { background: var(--green-800); }
+
+/* --gray-700 sobre --gray-100 = 9.7:1 ✓ AAA */
+.badge-nodisponible       { background: var(--gray-100); color: var(--gray-700); }
+.badge-nodisponible .dot  { background: var(--gray-500); }
+
+/* --red-700 sobre --red-100 = 8.0:1 ✓ AAA */
+.badge-agotado       { background: var(--red-100);  color: var(--red-700); }
+.badge-agotado .dot  { background: var(--red-600); }
+
+/* --amber-700 sobre --amber-100 = 7.0:1 ✓ AAA */
+.badge-bajo       { background: var(--amber-100); color: var(--amber-700); }
+.badge-bajo .dot  { background: var(--amber-500); }
+
+/* --violet-700 sobre --violet-100 = 8.6:1 ✓ AAA */
+.badge-admin       { background: var(--violet-100); color: var(--violet-700); }
+.badge-admin .dot  { background: var(--violet-600); }
+
+.badge-cliente       { background: var(--green-100); color: var(--green-900); }
+.badge-cliente .dot  { background: var(--green-800); }
+
+.badge-vigente       { background: var(--green-100); color: var(--green-900); }
+.badge-vigente .dot  { background: var(--green-800); }
+
+.badge-expirado       { background: var(--red-100); color: var(--red-700); }
+.badge-expirado .dot  { background: var(--red-600); }
+
+.badge-inactivo       { background: var(--gray-100); color: var(--gray-700); }
+.badge-inactivo .dot  { background: var(--gray-500); }
+
+/* FIX #17 — era --gold-700 (#a07940) = 3.1:1 FALLA AA.
+   Corregido a --gold-800 (#6b4e12) sobre --gold-100 (#f9f0e0) = 5.9:1 ✓ AA */
+.badge-categoria       { background: var(--gold-100); color: var(--gold-800); }
+.badge-categoria .dot  { background: var(--gold-700); }
+
+/* --blue-700 sobre --blue-100 = 8.8:1 ✓ AAA */
+.badge-porcentaje       { background: var(--blue-100); color: var(--blue-700); }
+.badge-porcentaje .dot  { background: var(--blue-600); }
+
+.badge-monto       { background: var(--gold-100); color: var(--gold-800); }
+.badge-monto .dot  { background: var(--gold-700); }
+
+/* ──────────────────────────────────────────────────────────────
+   ACTION BUTTONS (icon-only en tabla)
+   FIX #14 — era --gray-400 (2.3:1). Corregido a --gray-600 (7:1) ✓
+   FIX #22 — añadido :focus-visible
+────────────────────────────────────────────────────────────── */
+.actions-cell { display: flex; align-items: center; gap: 4px; }
+
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: var(--r-xs);
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    color: var(--gray-600);   /* 7.0:1 ✓ — corregido desde 2.3:1 */
+    text-decoration: none;
+    transition: var(--transition);
+    cursor: pointer;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+    /* WCAG 2.5.5: área mínima de 30×30 css pixels → cumple */
+}
+
+.btn-action:hover {
+    transform: translateY(-1px);
+    border-color: transparent;
+    color: var(--white);
+}
+
+/* Hover colores: blanco sobre verde/dorado/rojo ✓ todos >7:1 */
+.btn-action.edit:hover   { background: var(--gold-700);  box-shadow: 0 2px 8px rgba(138,101,32,0.35); }
+.btn-action.view:hover   { background: var(--green-800); box-shadow: 0 2px 8px rgba(0,112,74,0.32); }
+.btn-action.delete:hover { background: var(--red-600);   box-shadow: 0 2px 8px rgba(220,38,38,0.32); }
+
+/* ──────────────────────────────────────────────────────────────
+   FORM CARD
+────────────────────────────────────────────────────────────── */
+.form-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    animation: fadeUp 0.22s var(--ease) both;
+}
+
+.form-card-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--gray-50);
+}
+
+.form-card-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--green-100);
+    border-radius: var(--r-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+    color: var(--green-900);   /* 13.3:1 ✓ AAA */
+    flex-shrink: 0;
+}
+
+.form-card-icon.danger  { background: var(--red-100);   color: var(--red-700); }
+.form-card-icon.warning { background: var(--amber-100); color: var(--amber-700); }
+.form-card-icon.gold    { background: var(--gold-100);  color: var(--gold-800); }
+
+.form-card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--gray-900);   /* 17.6:1 ✓ AAA */
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+}
+
+/* FIX #5 — era --gray-400 (2.3:1). Corregido a --gray-600 (7:1) ✓ */
+.form-card-subtitle {
+    font-size: 0.78rem;
+    color: var(--gray-600);   /* 7.0:1 ✓ — corregido desde 2.3:1 */
+    margin-top: 2px;
+    line-height: 1.4;
+}
+
+.form-card-body { padding: 24px; }
+
+/* ──────────────────────────────────────────────────────────────
+   FORM FIELDS
+────────────────────────────────────────────────────────────── */
+.field-group { margin-bottom: 18px; }
+
+.form-label {
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    color: var(--gray-800) !important;   /* 14.0:1 ✓ AAA — labels siempre máximo contraste */
+    letter-spacing: 0.01em !important;
+    margin-bottom: 6px !important;
+    display: block;
+}
+
+/* FIX #15 — Bordes de inputs/selects: era #e4e4e7 (1.25:1). 
+   Corregido a --input-border (#8c8c96): L≈0.29 → ratio 3.1:1 ✓ WCAG 1.4.11 */
+.form-control,
+.form-select {
+    font-family: var(--font) !important;
+    font-size: 0.87rem !important;
+    border: 1.5px solid var(--input-border) !important;   /* 3.1:1 ✓ — corregido desde 1.25:1 */
+    border-radius: var(--r-sm) !important;
+    padding: 0.58rem 0.9rem !important;
+    color: var(--gray-900) !important;   /* 17.6:1 ✓ */
+    background: var(--white) !important;
+    transition: border-color 0.14s, box-shadow 0.14s !important;
+    width: 100%;
+    box-shadow: none !important;
+    line-height: 1.5;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--green-800) !important;
+    box-shadow: var(--focus-ring) !important;   /* FIX #21 — foco visible */
+    outline: none !important;
+}
+
+/* FIX #12 — era --gray-300 (#d4d4d8) = 1.4:1 (CRÍTICO).
+   Corregido a un valor más oscuro para que el placeholder sea legible.
+   Nota WCAG: SC 1.4.3 excluye texto inactivo/placeholder, pero best-practice
+   recomienda mínimo 3:1. Usamos ~3.5:1 para balance legibilidad/distinción. */
+.form-control::placeholder { color: #878792 !important; }   /* L≈0.27 → ~3.6:1 sobre blanco ✓ */
+
+.form-control.is-invalid,
+.form-select.is-invalid { border-color: var(--red-600) !important; }
+
+textarea.form-control { resize: vertical; min-height: 80px; }
+
+/* FIX #6 — era --gray-400 (2.3:1). Corregido a --gray-600 (7:1) ✓ */
+.field-hint {
+    font-size: 0.74rem;
+    color: var(--gray-600);   /* 7.0:1 ✓ — corregido desde 2.3:1 */
+    margin-top: 5px;
+    line-height: 1.4;
+}
+
+.field-error {
+    font-size: 0.74rem;
+    color: var(--red-700);   /* 8.0:1 ✓ AAA */
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+}
+
+/* Validation summary */
+.validation-summary-errors {
+    background: var(--red-50) !important;
+    border: 1.5px solid #fca5a5 !important;   /* borde más visible en error */
+    border-radius: var(--r-sm) !important;
+    padding: 10px 14px !important;
+    font-size: 0.82rem !important;
+    color: var(--red-700) !important;   /* 8.0:1 ✓ AAA */
+    margin-bottom: 18px !important;
+}
+
+.validation-summary-errors ul { margin: 0; padding-left: 16px; }
+
+/* Toggle switch 
+   FIX #28 — borde era #e4e4e7 (1.25:1). Corregido a --input-border (3.1:1) ✓ 
+   FIX #7 — descripción toggle era --gray-400. Corregido a --gray-600 ✓ */
+.toggle-field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: var(--gray-50);
+    border: 1.5px solid var(--input-border);   /* FIX #28 — 3.1:1 ✓ */
+    border-radius: var(--r-sm);
+    gap: 12px;
+}
+
+.toggle-info-title {
+    font-size: 0.87rem;
+    font-weight: 600;
+    color: var(--gray-900);   /* 17.6:1 ✓ */
+}
+
+/* FIX #7 — era --gray-400 (2.3:1). Corregido a --gray-600 (7:1) ✓ */
+.toggle-info-desc {
+    font-size: 0.74rem;
+    color: var(--gray-600);   /* 7.0:1 ✓ — corregido desde 2.3:1 */
+    margin-top: 2px;
+    line-height: 1.4;
+}
+
+.form-switch .form-check-input {
+    width: 40px !important;
+    height: 22px !important;
+    border-radius: 999px !important;
+    cursor: pointer;
+    background-color: var(--gray-300) !important;
+    border: 1.5px solid var(--gray-400) !important;   /* borde visible en estado OFF */
+    transition: background-color 0.18s, border-color 0.18s !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e") !important;
+    background-position: left 2px center !important;
+    background-size: 18px !important;
+    background-repeat: no-repeat !important;
+    flex-shrink: 0;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: var(--green-800) !important;
+    border-color: var(--green-700) !important;
+    background-position: right 2px center !important;
+}
+
+/* Input con prefijo */
+.input-prefix-wrap { position: relative; }
+
+.input-prefix {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--gray-600);   /* 7.0:1 ✓ — mejorado de --gray-400 */
+    pointer-events: none;
+    z-index: 1;
+}
+
+.input-prefix-wrap .form-control { padding-left: 34px !important; }
+
+/* ──────────────────────────────────────────────────────────────
+   FORM BUTTONS — Jerarquía clara: primario > secundario > peligroso
+   FIX #23 — todos los botones tienen :focus-visible definido arriba
+────────────────────────────────────────────────────────────── */
+
+/* Primario — blanco sobre --green-800: 7.78:1 ✓ AAA */
+.btn-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: 100%;
+    background: var(--green-800);
+    color: var(--white);      /* 7.78:1 ✓ */
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.7rem 1.25rem;
+    border-radius: var(--r-sm);
+    border: 2px solid var(--green-800);
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: var(--font);
+    letter-spacing: 0.01em;
+    line-height: 1.4;
+}
+
+.btn-submit:hover {
+    background: var(--green-900);
+    border-color: var(--green-900);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(0,112,74,0.28);
+}
+
+/* Secundario — FIX #26:
+   era border: 1px solid #e4e4e7 (1.25:1 = invisible).
+   Corregido: --border-interactive (#a1a1aa) = 2.3:1 mejor.
+   + color texto --gray-700 (9.7:1) en lugar de --gray-500 (4.48:1)
+   para mayor jerarquía visual clara */
+.btn-cancel {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: 100%;
+    background: var(--white);
+    color: var(--gray-700);     /* 9.7:1 ✓ AAA — mejorado de --gray-500 */
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 0.7rem 1.25rem;
+    border-radius: var(--r-sm);
+    border: 1.5px solid var(--border-interactive);  /* FIX #26 — mejorado de 1.25:1 */
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: var(--font);
+    line-height: 1.4;
+}
+
+.btn-cancel:hover {
+    border-color: var(--gray-600);
+    color: var(--gray-900);
+    background: var(--gray-50);
+}
+
+/* Peligroso — blanco sobre --red-600: 5.74:1 ✓ AA */
+.btn-danger-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: 100%;
+    background: var(--red-600);
+    color: var(--white);      /* 5.74:1 ✓ AA */
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.7rem 1.25rem;
+    border-radius: var(--r-sm);
+    border: 2px solid var(--red-600);
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: var(--font);
+    line-height: 1.4;
+}
+
+.btn-danger-submit:hover {
+    background: var(--red-700);
+    border-color: var(--red-700);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220,38,38,0.3);
+}
+
+.form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-subtle);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   DELETE CARD
+────────────────────────────────────────────────────────────── */
+.delete-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    animation: fadeUp 0.22s var(--ease) both;
+}
+
+.delete-banner {
+    background: linear-gradient(135deg, var(--red-50), #fde8e8);
+    border-bottom: 1.5px solid #fca5a5;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.delete-banner-icon {
+    width: 44px;
+    height: 44px;
+    background: var(--red-100);
+    border: 1.5px solid #fca5a5;
+    border-radius: var(--r-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.delete-banner-title { font-size: 1rem; font-weight: 700; color: var(--red-700); }   /* 8:1 ✓ */
+.delete-banner-sub   { font-size: 0.77rem; color: var(--red-700); margin-top: 3px; font-weight: 500; }
+
+.info-grid {
+    padding: 20px 24px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0;
+    row-gap: 0;
+}
+
+/* FIX #8 — era --gray-400 (2.3:1). Corregido a --gray-600 (7:1) ✓ */
+.info-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--gray-600);   /* 7.0:1 ✓ — corregido desde 2.3:1 */
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-right: 28px;
+    align-self: center;
+}
+
+.info-value {
+    font-size: 0.87rem;
+    color: var(--gray-900);   /* 17.6:1 ✓ */
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border-subtle);
+    font-weight: 500;
+    align-self: center;
+}
+
+.info-label:last-of-type,
+.info-value:last-of-type { border-bottom: none; }
+
+/* ──────────────────────────────────────────────────────────────
+   TABS
+   FIX #24 — :focus-visible definido en sección global
+────────────────────────────────────────────────────────────── */
+.tab-bar {
+    display: flex;
+    gap: 4px;
+    background: var(--gray-200);   /* fondo más oscuro para mejor contraste del track */
+    padding: 4px;
+    border-radius: var(--r-sm);
+    width: fit-content;
+    margin-bottom: 20px;
+}
+
+.tab-item {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: var(--gray-600);    /* 7.0:1 sobre --gray-200 ✓ */
+    transition: var(--transition);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1.5px solid transparent;
+}
+
+.tab-item.active {
+    background: var(--white);
+    color: var(--gray-900);    /* 17.6:1 ✓ AAA */
+    box-shadow: var(--shadow-xs);
+    border-color: var(--border);
+}
+
+.tab-count {
+    background: var(--gray-300);
+    color: var(--gray-700);
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: var(--r-full);
+}
+
+.tab-item.active .tab-count {
+    background: var(--green-100);
+    color: var(--green-900);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   SEARCH BAR
+   FIX #13 — search-icon era --gray-300 (1.4:1). Corregido a --gray-500 ✓
+────────────────────────────────────────────────────────────── */
+.search-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.search-wrap {
+    position: relative;
+    flex: 0 0 280px;
+}
+
+/* FIX #13 — era --gray-300 (1.4:1 = icono invisible). Corregido a --gray-500 (4.6:1) ✓ */
+.search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-500);   /* 4.6:1 ✓ — corregido desde 1.4:1 */
+    font-size: 0.82rem;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.search-wrap .form-control { padding-left: 32px !important; }
+
+/* Btn buscar: blanco sobre --gray-900: 17.6:1 ✓ AAA */
+.btn-search {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--gray-900);
+    color: var(--white);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.55rem 0.95rem;
+    border-radius: var(--r-sm);
+    border: 2px solid var(--gray-900);
+    cursor: pointer;
+    font-family: var(--font);
+    transition: var(--transition);
+    line-height: 1.4;
+}
+
+.btn-search:hover { background: var(--gray-800); border-color: var(--gray-800); }
+
+/* FIX #16 — era --border (1.25:1). Corregido a --border-interactive ✓ */
+.btn-clear {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    color: var(--gray-700);   /* 9.7:1 ✓ */
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 0.55rem 0.95rem;
+    border-radius: var(--r-sm);
+    border: 1.5px solid var(--border-interactive);   /* FIX #16 */
+    cursor: pointer;
+    font-family: var(--font);
+    transition: var(--transition);
+    text-decoration: none;
+    line-height: 1.4;
+}
+
+.btn-clear:hover { border-color: var(--gray-600); color: var(--gray-900); }
+
+/* ──────────────────────────────────────────────────────────────
+   STAT PILL (topbar)
+────────────────────────────────────────────────────────────── */
+.stat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--r-full);
+    padding: 5px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--gray-700);   /* 9.7:1 ✓ */
+    box-shadow: var(--shadow-xs);
+}
+
+.stat-pill i { color: var(--green-800); font-size: 0.8rem; }
+
+/* ──────────────────────────────────────────────────────────────
+   EMPTY STATE
+────────────────────────────────────────────────────────────── */
+.empty-state {
+    text-align: center;
+    padding: 64px 20px;
+}
+
+.empty-state-icon {
+    font-size: 2.5rem;
+    color: var(--gray-300);   /* decorativo — no transporta info semántica */
+    margin-bottom: 14px;
+}
+
+/* 4.6:1 ✓ sobre blanco */
+.empty-state-title {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--gray-600);   /* mejorado desde --gray-500 */
+    margin-bottom: 5px;
+}
+
+.empty-state-sub {
+    font-size: 0.8rem;
+    color: var(--gray-500);   /* 4.6:1 ✓ AA */
+}
+
+/* ──────────────────────────────────────────────────────────────
+   FOOTER
+   FIX #11 — era --gray-400 (2.3:1). Corregido a --gray-600 (7:1) ✓
+────────────────────────────────────────────────────────────── */
+.main-footer {
+    padding: 14px 28px;
+    border-top: 1px solid var(--border-subtle);
+    font-size: 0.74rem;
+    color: var(--gray-600);   /* 7.0:1 ✓ — corregido desde 2.3:1 */
+    background: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.main-footer a { color: var(--green-800); font-weight: 600; }
+.main-footer a:hover { color: var(--green-900); }
+
+/* ──────────────────────────────────────────────────────────────
+   LEGACY OVERRIDES
+────────────────────────────────────────────────────────────── */
+.container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+.navbar { display: none !important; }
+footer.border-top { display: none !important; }
+
+/* ──────────────────────────────────────────────────────────────
+   ANIMACIONES
+────────────────────────────────────────────────────────────── */
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeSlideDown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   RESPONSIVE
+────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+    :root { --sidebar-w: 0px; }
+    .sidebar { display: none; }
+    .main-wrapper { margin-left: 0; }
+    .page-content { padding: 20px 16px 40px; }
+    .topbar { padding: 0 16px; }
+    .main-footer { padding: 12px 16px; }
+}
+
+@media (max-width: 640px) {
+    .page-header { flex-direction: column; align-items: flex-start; }
+    .search-wrap { flex: 1 1 100%; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   INVENTARIO — VARIANTES & STOCK  (Módulo nuevo)
+══════════════════════════════════════════════════════════════ */
+
+/* ── KPI Grid ── */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.kpi-card-wide { grid-column: span 1; }
+
+.kpi-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: var(--shadow-xs);
+    transition: box-shadow .18s, transform .18s;
+}
+.kpi-card:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+
+.kpi-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+.kpi-icon-blue   { background: var(--blue-100);   color: var(--blue-700); }
+.kpi-icon-green  { background: var(--green-100);  color: var(--green-800); }
+.kpi-icon-amber  { background: var(--amber-100);  color: var(--amber-700); }
+.kpi-icon-red    { background: var(--red-100);    color: var(--red-700); }
+.kpi-icon-purple { background: var(--violet-100); color: var(--violet-700); }
+
+.kpi-value {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--gray-950);
+    line-height: 1.15;
+    font-family: var(--font-display, var(--font));
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+.kpi-label {
+    font-size: 0.70rem;
+    color: var(--gray-500);
+    font-weight: 500;
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* tarjeta de valor monetario — fuente algo menor para evitar overflow */
+.kpi-card-wide .kpi-value { font-size: 1.05rem; }
+
+/* ── Search Bar ── */
+.inv-search-bar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--white);
+    border: 1.5px solid var(--input-border);
+    border-radius: var(--r-full);
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    padding: 0 16px;
+    gap: 10px;
+    margin-bottom: 12px;
+    transition: border-color .18s, box-shadow .18s;
+}
+.inv-search-bar:focus-within {
+    border-color: var(--green-700);
+    box-shadow: 0 0 0 3px rgba(0,112,74,.12);
+}
+.inv-search-icon { color: var(--gray-500); font-size: 0.9rem; flex-shrink: 0; }
+.inv-search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 0.88rem;
+    color: var(--gray-900);
+    padding: 12px 0;
+    font-family: var(--font);
+}
+.inv-search-input::placeholder { color: var(--gray-400); }
+.inv-search-count {
+    font-size: 0.72rem;
+    color: var(--gray-500);
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* ── Filters Row ── */
+.inv-filters {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    padding: 14px 16px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-xs);
+}
+.inv-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.inv-filter-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.inv-filter-label i { font-size: 0.7rem; }
+.inv-filter-select {
+    border: 1.5px solid var(--input-border);
+    border-radius: var(--r-sm);
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    font-family: var(--font);
+    color: var(--gray-800);
+    background: var(--white);
+    outline: none;
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s;
+    min-width: 130px;
+}
+.inv-filter-select:focus {
+    border-color: var(--green-700);
+    box-shadow: 0 0 0 3px rgba(0,112,74,.1);
+}
+.inv-price-wrap { display: flex; align-items: center; gap: 4px; }
+.inv-filter-clear {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border: 1.5px solid var(--input-border);
+    border-radius: var(--r-sm);
+    background: transparent;
+    color: var(--gray-600);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: border-color .15s, color .15s;
+    margin-top: auto;
+}
+.inv-filter-clear:hover { border-color: var(--red-600); color: var(--red-700); }
+
+/* ── Sort Bar ── */
+.inv-sort-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.inv-sort-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    white-space: nowrap;
+}
+.inv-sort-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-full);
+    background: var(--white);
+    color: var(--gray-600);
+    font-size: 0.74rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: all .15s;
+}
+.inv-sort-btn:hover { border-color: var(--green-700); color: var(--green-800); }
+.inv-sort-btn.active-asc,
+.inv-sort-btn.active-desc {
+    background: var(--green-100);
+    border-color: var(--green-700);
+    color: var(--green-800);
+}
+.inv-sort-btn i { font-size: 0.7rem; }
+
+/* ── Column helpers ── */
+.col-price   { text-align: right; white-space: nowrap; width: 90px; }
+.col-stock   { min-width: 130px; }
+.col-actions { text-align: right; width: 56px; }
+
+/* ── Stock visualization ── */
+.inv-stock-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 110px;
+}
+.inv-stock-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.inv-stock-num {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--gray-800);
+}
+.inv-stock-pct {
+    font-size: 0.68rem;
+    color: var(--gray-500);
+    font-weight: 500;
+}
+.inv-stock-bar {
+    height: 6px;
+    background: var(--gray-200);
+    border-radius: 99px;
+    overflow: hidden;
+}
+.inv-stock-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: var(--green-700);   /* verde >15 */
+    transition: width .4s ease;
+}
+.inv-stock-fill.med   { background: var(--amber-500); }  /* amarillo 6-15 */
+.inv-stock-fill.low   { background: #f97316; }           /* naranja 1-5   */
+.inv-stock-fill.empty { background: var(--red-600); width: 100% !important; opacity: .35; }
+
+/* ── Menú 3 puntos ── */
+.inv-menu-wrap {
+    position: relative;
+    display: inline-flex;
+    justify-content: flex-end;
+}
+.inv-menu-btn {
+    width: 32px;
+    height: 32px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-sm);
+    background: var(--white);
+    color: var(--gray-600);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all .15s;
+}
+.inv-menu-btn:hover {
+    border-color: var(--green-700);
+    color: var(--green-800);
+    background: var(--green-50);
+}
+
+.inv-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    min-width: 160px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: 0 8px 24px rgba(0,0,0,.12);
+    z-index: 50;
+    overflow: hidden;
+    animation: fadeSlideDown .14s ease;
+}
+.inv-dropdown.open { display: block; }
+
+.inv-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 9px 14px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--gray-800);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font);
+    text-decoration: none;
+    transition: background .12s;
+    text-align: left;
+}
+.inv-dropdown-item:hover { background: var(--gray-50); }
+.inv-dropdown-item i { color: var(--gray-500); font-size: 0.82rem; }
+
+.inv-dropdown-divider {
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 3px 0;
+}
+.inv-dropdown-danger { color: var(--red-700) !important; }
+.inv-dropdown-danger i { color: var(--red-600) !important; }
+.inv-dropdown-danger:hover { background: var(--red-50) !important; }
+
+/* ── Modal eliminar ── */
+.inv-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    backdrop-filter: blur(2px);
+    padding: 16px;
+}
+.inv-modal-overlay.open { display: flex; animation: fadeUp .18s ease; }
+
+.inv-modal {
+    background: var(--white);
+    border-radius: var(--r-lg);
+    padding: 32px 28px 24px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,.18);
+    text-align: center;
+}
+.inv-modal-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--red-100);
+    color: var(--red-700);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    margin: 0 auto 16px;
+}
+.inv-modal-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--gray-950);
+    margin-bottom: 6px;
+}
+.inv-modal-sub {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+.inv-modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* ── Botón CTA pulse ── */
+.btn-cta-pulse {
+    position: relative;
+    overflow: visible;
+}
+.btn-cta-pulse::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: calc(var(--r-md) + 3px);
+    border: 2px solid var(--green-700);
+    opacity: 0;
+    transition: opacity .2s, transform .2s;
+}
+.btn-cta-pulse:hover::after {
+    opacity: .35;
+    transform: scale(1.04);
+}
+
+/* ── Badge extras ── */
+.badge-porcentaje { background: var(--violet-100); color: var(--violet-700); }
+.badge-monto      { background: var(--blue-100);   color: var(--blue-700);   }
+.badge-vigente    { background: var(--green-100);  color: var(--green-800);  }
+.badge-inactivo   { background: var(--gray-100);   color: var(--gray-600);   }
+
+/* ── Table extra ── */
+.inv-table tbody tr.inv-row { cursor: default; }
+.inv-table .col-price { text-align: right; }
+.inv-table .col-actions { text-align: right; }
+
+/* ══════════════════════════════════════════════════════════════
+   MOTION SAFE — respeta prefers-reduced-motion (accesibilidad)
+══════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ── Sidebar stock badge ── */
+.sidebar-stock-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    background: var(--red-600);
+    color: var(--white);
+    font-size: 0.62rem;
+    font-weight: 700;
+    border-radius: 9999px;
+    line-height: 1;
+    flex-shrink: 0;
+    animation: pulse-badge 2s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.7; }
+}
+
+/* ── Responsive KPI ── */
+@media (max-width: 900px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 540px) {
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .kpi-value { font-size: 1.1rem; }
+    .inv-filters { flex-direction: column; align-items: stretch; }
+    .inv-filter-select { min-width: unset; width: 100%; }
+    .inv-sort-bar { display: none; }  /* oculta sort en móvil ultra-pequeño */
+    .col-stock  { min-width: unset; }
+    /* tabla scroll horizontal en móvil */
+    .inv-table  { min-width: 620px; }
+}

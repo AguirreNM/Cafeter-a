@@ -1,0 +1,60 @@
+﻿@model PryCafeteria.Models.Producto
+@{ ViewData["Title"] = "Detalles del Producto"; }
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title">Detalles del Producto</h1>
+        <p class="page-subtitle">Información completa del producto</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+        <a asp-action="Edit" asp-route-id="@Model?.ProductoId" class="btn-cta">
+            <i class="bi bi-pencil" aria-hidden="true"></i> Editar
+        </a>
+        <a asp-action="Index" class="btn-cancel" style="width:auto;padding:0.52rem 1rem;">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver
+        </a>
+    </div>
+</div>
+
+<div style="max-width:560px;margin:0 auto;">
+    <div class="form-card">
+        <div class="form-card-header">
+            <div class="form-card-icon">
+                <i class="bi bi-cup-hot" aria-hidden="true"></i>
+            </div>
+            <div>
+                <div class="form-card-title">@Html.DisplayFor(model => model.NombreProducto)</div>
+                <div class="form-card-subtitle">ID #@Model?.ProductoId</div>
+            </div>
+        </div>
+        <div class="info-grid">
+            <span class="info-label">Nombre</span>
+            <span class="info-value" style="font-size:1rem;font-weight:700;color:var(--gray-950);">@Html.DisplayFor(model => model.NombreProducto)</span>
+
+            <span class="info-label">Descripción</span>
+            <span class="info-value">@Html.DisplayFor(model => model.Descripcion)</span>
+
+            <span class="info-label">Categoría</span>
+            <span class="info-value">
+                <span class="badge-modern badge-categoria">
+                    <span class="dot" aria-hidden="true"></span>@Html.DisplayFor(model => model.Categoria.NombreCategoria)
+                </span>
+            </span>
+
+            <span class="info-label">Imagen</span>
+            <span class="info-value" style="font-size:0.78rem;word-break:break-all;">@Html.DisplayFor(model => model.Imagen)</span>
+
+            <span class="info-label">Disponible</span>
+            <span class="info-value">
+                @if (Model?.Disponible == true)
+                {
+                    <span class="badge-modern badge-disponible"><span class="dot" aria-hidden="true"></span>Sí</span>
+                }
+                else
+                {
+                    <span class="badge-modern badge-nodisponible"><span class="dot" aria-hidden="true"></span>No</span>
+                }
+            </span>
+        </div>
+    </div>
+</div>

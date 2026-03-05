@@ -1,0 +1,51 @@
+﻿@model PryCafeteria.Models.Categoria
+@{ ViewData["Title"] = "Editar Categoría"; }
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title">Editar Categoría</h1>
+        <p class="page-subtitle">Modifica el nombre de la categoría</p>
+    </div>
+    <a asp-action="Index" class="btn-cancel" style="width:auto;padding:0.52rem 1rem;">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver
+    </a>
+</div>
+
+<div style="max-width:480px;margin:0 auto;">
+    <div class="form-card">
+        <div class="form-card-header">
+            <div class="form-card-icon gold">
+                <i class="bi bi-folder-symlink" aria-hidden="true"></i>
+            </div>
+            <div>
+                <div class="form-card-title">Editar categoría</div>
+                <div class="form-card-subtitle">Los cambios afectarán a todos los productos asociados</div>
+            </div>
+        </div>
+        <div class="form-card-body">
+            <form asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+                <input type="hidden" asp-for="CategoriaId" />
+
+                <div class="field-group">
+                    <label asp-for="NombreCategoria" class="form-label">
+                        <i class="bi bi-folder2" style="color:var(--gold-700);margin-right:5px;" aria-hidden="true"></i>Nombre de la categoría
+                    </label>
+                    <input asp-for="NombreCategoria" class="form-control" placeholder="Ingrese el nombre de la categoría" />
+                    <span asp-validation-for="NombreCategoria" class="field-error"></span>
+                    <p class="field-hint">Solo letras, espacios y guiones. Entre 3 y 50 caracteres.</p>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">
+                        <i class="bi bi-floppy" aria-hidden="true"></i> Guardar Cambios
+                    </button>
+                    <a asp-action="Index" class="btn-cancel">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }

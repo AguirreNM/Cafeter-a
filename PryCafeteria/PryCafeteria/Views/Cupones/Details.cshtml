@@ -1,0 +1,65 @@
+﻿@model PryCafeteria.Models.Cupone
+@{ ViewData["Title"] = "Detalles de Cupón"; }
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title">Detalles del Cupón</h1>
+        <p class="page-subtitle">Información completa del cupón seleccionado</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+        <a asp-action="Edit" asp-route-id="@Model?.CuponId" class="btn-cta">
+            <i class="bi bi-pencil" aria-hidden="true"></i> Editar
+        </a>
+        <a asp-action="Index" class="btn-cancel" style="width:auto;padding:0.52rem 1rem;">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver
+        </a>
+    </div>
+</div>
+
+<div style="max-width:560px;margin:0 auto;">
+    <div class="form-card">
+        <div class="form-card-header">
+            <div class="form-card-icon">
+                <i class="bi bi-ticket-perforated" aria-hidden="true"></i>
+            </div>
+            <div>
+                <div class="form-card-title">@Html.DisplayFor(model => model.NombreCupon)</div>
+                <div class="form-card-subtitle">ID #@Model?.CuponId</div>
+            </div>
+        </div>
+        <div class="info-grid">
+            <span class="info-label">Nombre</span>
+            <span class="info-value" style="font-weight:700;">@Html.DisplayFor(model => model.NombreCupon)</span>
+
+            <span class="info-label">Tipo</span>
+            <span class="info-value">@Html.DisplayFor(model => model.TipoDescuento)</span>
+
+            <span class="info-label">Valor</span>
+            <span class="info-value" style="font-weight:700;color:var(--green-800);">
+                @{
+                    bool esPct = Model?.TipoDescuento?.ToLower() == "porcentaje";
+                }
+                @if (esPct) { @Model?.ValorDescuento.ToString("0.##")<text>%</text> }
+                else { <text>S/ </text>@Model?.ValorDescuento.ToString("0.00") }
+            </span>
+
+            <span class="info-label">Inicio</span>
+            <span class="info-value">@Model?.FechaInicio.ToString("dd/MM/yyyy HH:mm")</span>
+
+            <span class="info-label">Fin</span>
+            <span class="info-value">@Model?.FechaFin.ToString("dd/MM/yyyy HH:mm")</span>
+
+            <span class="info-label">Estado</span>
+            <span class="info-value">
+                @if (Model?.Activo == true)
+                {
+                    <span class="badge-modern badge-vigente"><span class="dot" aria-hidden="true"></span>Activo</span>
+                }
+                else
+                {
+                    <span class="badge-modern badge-inactivo"><span class="dot" aria-hidden="true"></span>Inactivo</span>
+                }
+            </span>
+        </div>
+    </div>
+</div>

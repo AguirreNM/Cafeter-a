@@ -1,0 +1,138 @@
+@model IEnumerable<PryCafeteria.Models.Producto>
+@{
+    ViewData["Title"] = "Menú";
+    Layout = "~/Views/Shared/_LayoutCliente.cshtml";
+    var categorias = ViewBag.Categorias as List<PryCafeteria.Models.Categoria> ?? new();
+    var categoriaSeleccionada = ViewBag.CategoriaSeleccionada as int?;
+    var busqueda = ViewBag.Busqueda as string;
+}
+
+<div style="display:flex;gap:24px;align-items:flex-start;">
+
+    <!-- ══ FILTROS LATERALES ══ -->
+    <aside style="width:200px;flex-shrink:0;">
+        <h6 style="font-weight:700;color:#374151;margin-bottom:12px;font-size:.85rem;text-transform:uppercase;letter-spacing:.05em;">Categorías</h6>
+        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;">
+            <li>
+                <a asp-controller="Catalogo" asp-action="Index" asp-route-busqueda="@busqueda"
+                   style="display:block;padding:8px 12px;border-radius:8px;text-decoration:none;font-size:.9rem;@(categoriaSeleccionada == null ? "background:#1B4332;color:#fff;font-weight:600;" : "color:#374151;")">
+                    Todas
+                </a>
+            </li>
+            @foreach (var cat in categorias)
+            {
+                <li>
+                    <a asp-controller="Catalogo" asp-action="Index"
+                       asp-route-categoriaId="@cat.CategoriaId"
+                       asp-route-busqueda="@busqueda"
+                       style="display:block;padding:8px 12px;border-radius:8px;text-decoration:none;font-size:.9rem;@(categoriaSeleccionada == cat.CategoriaId ? "background:#1B4332;color:#fff;font-weight:600;" : "color:#374151;")">
+                        @cat.NombreCategoria
+                    </a>
+                </li>
+            }
+        </ul>
+    </aside>
+
+    <!-- ══ CONTENIDO PRINCIPAL ══ -->
+    <div style="flex:1;min-width:0;">
+
+        <!-- Buscador -->
+        <form asp-controller="Catalogo" asp-action="Index" method="get" style="margin-bottom:20px;display:flex;gap:8px;">
+            @if (categoriaSeleccionada.HasValue)
+            {
+                <input type="hidden" name="categoriaId" value="@categoriaSeleccionada" />
+            }
+            <input type="text" name="busqueda" value="@busqueda"
+                   placeholder="Buscar producto..."
+                   style="flex:1;padding:8px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:.9rem;" />
+            <button type="submit" class="btn btn-sm" style="background:#1B4332;color:#fff;padding:8px 16px;border-radius:8px;">
+                <i class="bi bi-search"></i>
+            </button>
+            @if (!string.IsNullOrEmpty(busqueda))
+            {
+                <a asp-controller="Catalogo" asp-action="Index" asp-route-categoriaId="@categoriaSeleccionada"
+                   class="btn btn-sm btn-outline-secondary" style="border-radius:8px;">
+                    <i class="bi bi-x"></i>
+                </a>
+            }
+        </form>
+
+        <!-- Título sección -->
+        @{
+            var tituloSeccion = categoriaSeleccionada.HasValue
+                ? categorias.FirstOrDefault(c => c.CategoriaId == categoriaSeleccionada)?.NombreCategoria ?? "Productos"
+                : "Todo el menú";
+        }
+        <h2 style="font-size:1.2rem;font-weight:700;color:#111827;margin-bottom:16px;">
+            @tituloSeccion
+            <span style="font-size:.85rem;font-weight:400;color:#6b7280;margin-left:8px;">@Model.Count() productos</span>
+        </h2>
+
+        @if (!Model.Any())
+        {
+            <div style="text-align:center;padding:60px 20px;color:#9ca3af;">
+                <i class="bi bi-cup-hot" style="font-size:3rem;"></i>
+                <p style="margin-top:12px;font-size:1rem;">No hay productos disponibles en esta categoría.</p>
+            </div>
+        }
+        else
+        {
+            <!-- Grid de productos -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px;">
+                @foreach (var producto in Model)
+                {
+                    var precioDesde = producto.ProductosTamanios.Any()
+                        ? producto.ProductosTamanios.Min(pt => pt.Precio)
+                        : 0m;
+                    var hayStock = producto.ProductosTamanios.Any(pt => pt.Stock > 0);
+
+                    <div style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);transition:box-shadow .2s;"
+                         onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,.14)'"
+                         onmouseout="this.style.boxShadow='0 1px 4px rgba(0,0,0,.08)'">
+                        <a asp-controller="Catalogo" asp-action="Details" asp-route-id="@producto.ProductoId"
+                           style="text-decoration:none;display:block;">
+                            <div style="height:160px;overflow:hidden;background:#f3f4f6;">
+                                <img src="@(producto.Imagen ?? "/images/placeholder-producto.png")"
+                                     alt="@producto.NombreProducto"
+                                     style="width:100%;height:100%;object-fit:cover;"
+                                     loading="lazy"
+                                     onerror="this.src='/images/placeholder-producto.png'" />
+                            </div>
+                        </a>
+                        <div style="padding:14px;">
+                            <span style="font-size:.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;">@producto.Categoria.NombreCategoria</span>
+                            <h3 style="font-size:.95rem;font-weight:700;color:#111827;margin:4px 0 6px;line-height:1.3;">
+                                <a asp-controller="Catalogo" asp-action="Details" asp-route-id="@producto.ProductoId"
+                                   style="text-decoration:none;color:inherit;">@producto.NombreProducto</a>
+                            </h3>
+                            @if (!string.IsNullOrEmpty(producto.Descripcion))
+                            {
+                                <p style="font-size:.8rem;color:#6b7280;margin:0 0 10px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+                                    @producto.Descripcion
+                                </p>
+                            }
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+                                @if (precioDesde > 0)
+                                {
+                                    <span style="font-size:.8rem;color:#6b7280;">Desde</span>
+                                    <span style="font-weight:700;color:#1B4332;font-size:1rem;">S/. @precioDesde.ToString("0.00")</span>
+                                }
+                            </div>
+                            @if (!hayStock)
+                            {
+                                <span style="display:block;text-align:center;margin-top:8px;font-size:.78rem;color:#ef4444;font-weight:600;">Sin stock</span>
+                            }
+                            else
+                            {
+                                <a asp-controller="Catalogo" asp-action="Details" asp-route-id="@producto.ProductoId"
+                                   style="display:block;text-align:center;margin-top:10px;padding:7px;background:#1B4332;color:#fff;border-radius:8px;text-decoration:none;font-size:.85rem;font-weight:600;">
+                                    Ver detalle
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,183 @@
+@model PryCafeteria.Models.Producto
+@{ ViewData["Title"] = "Nuevo Producto"; }
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title">Nuevo Producto</h1>
+        <p class="page-subtitle">Agrega un producto al catálogo del menú</p>
+    </div>
+    <a asp-action="Index" class="btn-cancel" style="width:auto;padding:0.52rem 1rem;">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver
+    </a>
+</div>
+
+<div style="max-width:580px;margin:0 auto;">
+    <div class="form-card">
+        <div class="form-card-header">
+            <div class="form-card-icon">
+                <i class="bi bi-cup-hot-fill" aria-hidden="true"></i>
+            </div>
+            <div>
+                <div class="form-card-title">Crear producto</div>
+                <div class="form-card-subtitle">Completa todos los campos requeridos</div>
+            </div>
+        </div>
+        <div class="form-card-body">
+            {{!-- enctype multipart requerido para subida de archivo --}}
+            <form asp-action="Create" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+
+                <!-- Nombre -->
+                <div class="field-group">
+                    <label asp-for="NombreProducto" class="form-label">
+                        <i class="bi bi-tag" style="color:var(--green-800);margin-right:5px;" aria-hidden="true"></i>
+                        Nombre del Producto <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="NombreProducto" class="form-control" placeholder="Ej: Café Latte" maxlength="100" />
+                    <span asp-validation-for="NombreProducto" class="field-error"></span>
+                    <p class="field-hint">Mínimo 3 caracteres. Debe ser único dentro de la categoría seleccionada.</p>
+                </div>
+
+                <!-- Descripción -->
+                <div class="field-group">
+                    <label asp-for="Descripcion" class="form-label">
+                        <i class="bi bi-text-left" style="color:var(--green-800);margin-right:5px;" aria-hidden="true"></i>
+                        Descripción
+                    </label>
+                    <textarea asp-for="Descripcion" class="form-control" rows="3"
+                              placeholder="Describe el producto…" maxlength="200"
+                              id="descTextarea"></textarea>
+                    <div class="d-flex justify-content-between">
+                        <span asp-validation-for="Descripcion" class="field-error"></span>
+                        <small class="text-muted ms-auto" id="descCounter">0 / 200</small>
+                    </div>
+                </div>
+
+                <!-- Categoría -->
+                <div class="field-group">
+                    <label asp-for="CategoriaId" class="form-label">
+                        <i class="bi bi-folder2" style="color:var(--gold-700);margin-right:5px;" aria-hidden="true"></i>
+                        Categoría <span class="text-danger">*</span>
+                    </label>
+                    <select asp-for="CategoriaId" class="form-select" asp-items="ViewBag.CategoriaId">
+                        <option value="">-- Seleccione una categoría --</option>
+                    </select>
+                    <span asp-validation-for="CategoriaId" class="field-error"></span>
+                </div>
+
+                <!-- Imagen con vista previa -->
+                <div class="field-group">
+                    <label class="form-label">
+                        <i class="bi bi-image" style="color:var(--green-800);margin-right:5px;" aria-hidden="true"></i>
+                        Imagen del Producto
+                    </label>
+
+                    <!-- Vista previa -->
+                    <div id="imgPreviewWrap" style="margin-bottom:10px;display:none;">
+                        <img id="imgPreview"
+                             src="#" alt="Vista previa"
+                             style="width:120px;height:120px;object-fit:cover;border-radius:10px;
+                                    border:2px solid var(--green-200);display:block;" />
+                    </div>
+                    <div id="imgPlaceholderWrap"
+                         style="width:120px;height:120px;border-radius:10px;
+                                border:2px dashed var(--green-200);display:flex;
+                                align-items:center;justify-content:center;
+                                color:var(--green-400);font-size:2rem;margin-bottom:10px;">
+                        <i class="bi bi-image"></i>
+                    </div>
+
+                    <input type="file" name="imagenArchivo" id="imagenArchivo"
+                           class="form-control"
+                           accept=".jpg,.jpeg,.png"
+                           style="margin-top:6px;" />
+                    <p class="field-hint">Formatos: .jpg, .jpeg, .png · Máximo 2 MB · Se redimensionará a 800×800 px.<br>
+                        Si no se sube imagen, se asignará una imagen placeholder.</p>
+                    <span id="imgError" class="field-error" style="display:none;"></span>
+                </div>
+
+                <!-- Disponible -->
+                <div class="field-group">
+                    <div class="toggle-field">
+                        <div>
+                            <div class="toggle-info-title">Producto Disponible</div>
+                            <div class="toggle-info-desc">Visible para los clientes en el menú</div>
+                        </div>
+                        <div class="form-check form-switch mb-0">
+                            <input asp-for="Disponible" class="form-check-input" type="checkbox" role="switch" checked />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">
+                        <i class="bi bi-floppy" aria-hidden="true"></i> Guardar Producto
+                    </button>
+                    <a asp-action="Index" class="btn-cancel">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+    // ── Vista previa de imagen seleccionada ─────────────────────────────────
+    const fileInput   = document.getElementById('imagenArchivo');
+    const preview     = document.getElementById('imgPreview');
+    const previewWrap = document.getElementById('imgPreviewWrap');
+    const placeholder = document.getElementById('imgPlaceholderWrap');
+    const imgError    = document.getElementById('imgError');
+    const MAX_SIZE    = 2 * 1024 * 1024; // 2 MB
+    const ALLOWED_EXT = ['jpg', 'jpeg', 'png'];
+
+    fileInput.addEventListener('change', function () {
+        imgError.style.display = 'none';
+        const file = this.files[0];
+        if (!file) { resetPreview(); return; }
+
+        // Validar extensión
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (!ALLOWED_EXT.includes(ext)) {
+            imgError.textContent = 'Solo se permiten imágenes .jpg, .jpeg y .png';
+            imgError.style.display = 'block';
+            resetPreview();
+            this.value = '';
+            return;
+        }
+        // Validar tamaño
+        if (file.size > MAX_SIZE) {
+            imgError.textContent = 'La imagen no puede superar 2 MB';
+            imgError.style.display = 'block';
+            resetPreview();
+            this.value = '';
+            return;
+        }
+        // Mostrar preview
+        const reader = new FileReader();
+        reader.onload = e => {
+            preview.src = e.target.result;
+            previewWrap.style.display = 'block';
+            placeholder.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    });
+
+    function resetPreview() {
+        preview.src = '#';
+        previewWrap.style.display = 'none';
+        placeholder.style.display = 'flex';
+    }
+
+    // ── Contador de descripción ──────────────────────────────────────────────
+    const descTA      = document.getElementById('descTextarea');
+    const descCounter = document.getElementById('descCounter');
+    if (descTA) {
+        descTA.addEventListener('input', () => {
+            descCounter.textContent = descTA.value.length + ' / 200';
+        });
+    }
+    </script>
+}

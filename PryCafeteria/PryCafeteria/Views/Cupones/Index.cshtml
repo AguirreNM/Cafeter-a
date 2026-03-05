@@ -1,0 +1,237 @@
+@model IEnumerable<PryCafeteria.Models.Cupone>
+@{
+    ViewData["Title"] = "Cupones";
+    var total   = Model.Count();
+    var activos = Model.Count(c => c.Activo);
+    var inact   = total - activos;
+}
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title">Cupones</h1>
+        <p class="page-subtitle">Administra los cupones de descuento del sistema</p>
+    </div>
+    <a asp-action="Create" class="btn-cta btn-cta-pulse">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> Nuevo Cupón
+    </a>
+</div>
+
+@if (TempData["Exito"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle-fill"></i> @TempData["Exito"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        <i class="bi bi-exclamation-circle-fill"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- KPI mini -->
+<div class="kpi-grid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr));">
+    <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-blue"><i class="bi bi-ticket-perforated"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-value">@total</div>
+            <div class="kpi-label">Total cupones</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-green"><i class="bi bi-check-circle"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-value">@activos</div>
+            <div class="kpi-label">Activos</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-amber"><i class="bi bi-pause-circle"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-value">@inact</div>
+            <div class="kpi-label">Inactivos</div>
+        </div>
+    </div>
+</div>
+
+<!-- Búsqueda -->
+<div class="inv-search-bar">
+    <i class="bi bi-search inv-search-icon"></i>
+    <input type="text" id="cupSearch" class="inv-search-input"
+           placeholder="Buscar por nombre de cupón..." autocomplete="off" />
+    <span class="inv-search-count" id="cupCount">@total resultados</span>
+</div>
+
+<!-- Filtros -->
+<div class="inv-filters">
+    <div class="inv-filter-group">
+        <label class="inv-filter-label"><i class="bi bi-tag"></i> Tipo</label>
+        <select id="filterTipo" class="inv-filter-select">
+            <option value="">Todos</option>
+            <option value="porcentaje">Porcentaje</option>
+            <option value="monto">Monto fijo</option>
+        </select>
+    </div>
+    <div class="inv-filter-group">
+        <label class="inv-filter-label"><i class="bi bi-circle-half"></i> Estado</label>
+        <select id="filterActivo" class="inv-filter-select">
+            <option value="">Todos</option>
+            <option value="activo">Activo</option>
+            <option value="inactivo">Inactivo</option>
+        </select>
+    </div>
+    <button class="inv-filter-clear" id="cupClear">
+        <i class="bi bi-x-lg"></i> Limpiar filtros
+    </button>
+</div>
+
+<div class="data-card" style="overflow:visible;">
+    <div class="data-card-header">
+        <div style="display:flex;align-items:center;gap:12px;">
+            <span class="data-card-title">Lista de cupones</span>
+            <span class="data-card-count" id="cupTC">@total</span>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="bi bi-ticket-perforated"></i></div>
+            <div class="empty-state-title">Sin cupones</div>
+            <div class="empty-state-sub">Crea el primer cupón de descuento</div>
+        </div>
+    }
+    else
+    {
+        <div style="overflow-x:auto;">
+            <table class="modern-table inv-table" id="cupTable">
+                <thead style="position:sticky;top:0;z-index:2;">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Tipo</th>
+                        <th>Valor</th>
+                        <th>Inicio</th>
+                        <th>Fin</th>
+                        <th>Estado</th>
+                        <th class="col-actions">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="cupBody">
+                    @foreach (var item in Model)
+                    {
+                        bool esPct = item.TipoDescuento?.ToLower() == "porcentaje";
+                        var tipoVal = esPct ? "porcentaje" : "monto";
+                        var activoVal = item.Activo ? "activo" : "inactivo";
+                        <tr class="cup-row"
+                            data-nombre="@item.NombreCupon.ToLower()"
+                            data-tipo="@tipoVal"
+                            data-activo="@activoVal">
+                            <td class="cell-primary">@item.NombreCupon</td>
+                            <td>
+                                @if (esPct)
+                                {
+                                    <span class="badge-modern badge-porcentaje"><span class="dot"></span>Porcentaje</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-modern badge-monto"><span class="dot"></span>Monto fijo</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="cell-price">
+                                    @if (esPct) { @item.ValorDescuento.ToString("0.##")<text>%</text> }
+                                    else { <text>S/ </text>@item.ValorDescuento.ToString("0.00") }
+                                </span>
+                            </td>
+                            <td class="cell-secondary cell-mono">@item.FechaInicio.ToString("dd/MM/yy")</td>
+                            <td class="cell-secondary cell-mono">@item.FechaFin.ToString("dd/MM/yy")</td>
+                            <td>
+                                @if (item.Activo)
+                                {
+                                    <span class="badge-modern badge-vigente"><span class="dot"></span>Activo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-modern badge-inactivo"><span class="dot"></span>Inactivo</span>
+                                }
+                            </td>
+                            <td class="col-actions">
+                                <div class="inv-menu-wrap">
+                                    <button class="inv-menu-btn" type="button" onclick="toggleMenu(this)" aria-label="Acciones">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <div class="inv-dropdown">
+                                        <a asp-action="Details" asp-route-id="@item.CuponId" class="inv-dropdown-item">
+                                            <i class="bi bi-eye"></i> Ver detalles
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@item.CuponId" class="inv-dropdown-item">
+                                            <i class="bi bi-pencil"></i> Editar
+                                        </a>
+                                        <div class="inv-dropdown-divider"></div>
+                                        <a asp-action="Delete" asp-route-id="@item.CuponId" class="inv-dropdown-item inv-dropdown-danger">
+                                            <i class="bi bi-trash3"></i> Eliminar
+                                        </a>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="empty-state" id="cupNoRes" style="display:none;">
+            <div class="empty-state-icon"><i class="bi bi-search"></i></div>
+            <div class="empty-state-title">Sin resultados</div>
+            <div class="empty-state-sub">Prueba con otros filtros</div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+const cupRows = () => [...document.querySelectorAll('#cupBody .cup-row')];
+const cupNoRes = document.getElementById('cupNoRes');
+const cupCount = document.getElementById('cupCount');
+const cupTC    = document.getElementById('cupTC');
+
+function applyCupFilters() {
+    const q    = (document.getElementById('cupSearch').value || '').toLowerCase();
+    const tipo = document.getElementById('filterTipo').value;
+    const act  = document.getElementById('filterActivo').value;
+    let vis = 0;
+    cupRows().forEach(row => {
+        const show = (!q || row.dataset.nombre.includes(q))
+                  && (!tipo || row.dataset.tipo === tipo)
+                  && (!act  || row.dataset.activo === act);
+        row.style.display = show ? '' : 'none';
+        if (show) vis++;
+    });
+    if (cupNoRes) cupNoRes.style.display = vis === 0 ? '' : 'none';
+    if (cupCount) cupCount.textContent   = vis + ' resultado' + (vis !== 1 ? 's' : '');
+    if (cupTC)    cupTC.textContent      = vis;
+}
+
+document.getElementById('cupSearch').addEventListener('input', applyCupFilters);
+document.getElementById('filterTipo').addEventListener('change', applyCupFilters);
+document.getElementById('filterActivo').addEventListener('change', applyCupFilters);
+document.getElementById('cupClear').addEventListener('click', () => {
+    document.getElementById('cupSearch').value = '';
+    document.getElementById('filterTipo').value = '';
+    document.getElementById('filterActivo').value = '';
+    applyCupFilters();
+});
+
+function toggleMenu(btn) {
+    document.querySelectorAll('.inv-dropdown.open').forEach(d => {
+        if (d !== btn.nextElementSibling) d.classList.remove('open');
+    });
+    btn.nextElementSibling.classList.toggle('open');
+}
+document.addEventListener('click', e => {
+    if (!e.target.closest('.inv-menu-wrap'))
+        document.querySelectorAll('.inv-dropdown.open').forEach(d => d.classList.remove('open'));
+});
+</script>
+}

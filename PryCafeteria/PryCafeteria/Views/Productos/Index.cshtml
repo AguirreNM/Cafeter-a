@@ -1,0 +1,282 @@
+@model IEnumerable<PryCafeteria.Models.Producto>
+
+@{
+    ViewData["Title"] = "Productos";
+    var total       = Model.Count();
+    var disponibles = Model.Count(p => p.Disponible);
+    var pausados    = total - disponibles;
+    var categorias  = Model.Select(p => p.Categoria?.NombreCategoria).Where(c => c != null).Distinct().OrderBy(c => c).ToList();
+}
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title">Catálogo de productos</h1>
+        <p class="page-subtitle">@total productos · @disponibles disponibles para venta</p>
+    </div>
+    <a asp-action="Create" class="btn-cta btn-cta-pulse">
+        <i class="bi bi-plus-lg"></i> Nuevo producto
+    </a>
+</div>
+
+@if (TempData["Exito"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle-fill"></i> @TempData["Exito"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        <i class="bi bi-exclamation-circle-fill"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Info"] != null)
+{
+    <div class="alert alert-warning alert-dismissible fade show">
+        <i class="bi bi-info-circle-fill"></i> @TempData["Info"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- KPI mini -->
+<div class="kpi-grid" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr));">
+    <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-blue"><i class="bi bi-cup-hot"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-value">@total</div>
+            <div class="kpi-label">Total productos</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-green"><i class="bi bi-check-circle"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-value">@disponibles</div>
+            <div class="kpi-label">Disponibles</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-amber"><i class="bi bi-pause-circle"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-value">@pausados</div>
+            <div class="kpi-label">Pausados</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-purple"><i class="bi bi-grid"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-value">@categorias.Count</div>
+            <div class="kpi-label">Categorías</div>
+        </div>
+    </div>
+</div>
+
+<!-- Búsqueda -->
+<div class="inv-search-bar">
+    <i class="bi bi-search inv-search-icon"></i>
+    <input type="text" id="prodSearch" class="inv-search-input"
+           placeholder="Buscar por nombre o descripción..." autocomplete="off" />
+    <span class="inv-search-count" id="prodCount">@total resultados</span>
+</div>
+
+<!-- Filtros -->
+<div class="inv-filters">
+    <div class="inv-filter-group">
+        <label class="inv-filter-label"><i class="bi bi-grid"></i> Categoría</label>
+        <select id="filterCat" class="inv-filter-select">
+            <option value="">Todas</option>
+            @foreach (var cat in categorias)
+            {
+                <option value="@cat">@cat</option>
+            }
+        </select>
+    </div>
+    <div class="inv-filter-group">
+        <label class="inv-filter-label"><i class="bi bi-circle-half"></i> Estado</label>
+        <select id="filterEstado" class="inv-filter-select">
+            <option value="">Todos</option>
+            <option value="disponible">Disponible</option>
+            <option value="pausado">Pausado</option>
+        </select>
+    </div>
+    <div class="inv-filter-group">
+        <label class="inv-filter-label"><i class="bi bi-sort-alpha-down"></i> Ordenar</label>
+        <select id="filterOrden" class="inv-filter-select">
+            <option value="">Sin orden</option>
+            <option value="nombre-asc">Nombre A→Z</option>
+            <option value="nombre-desc">Nombre Z→A</option>
+            <option value="categoria-asc">Categoría A→Z</option>
+            <option value="categoria-desc">Categoría Z→A</option>
+        </select>
+    </div>
+    <button class="inv-filter-clear" id="prodClearFilters">
+        <i class="bi bi-x-lg"></i> Limpiar filtros
+    </button>
+</div>
+
+<div class="data-card" style="overflow:visible;">
+    <div class="data-card-header">
+        <div style="display:flex;align-items:center;gap:12px;">
+            <span class="data-card-title">Todos los productos</span>
+            <span class="data-card-count" id="prodTableCount">@total</span>
+        </div>
+
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="bi bi-cup-hot"></i></div>
+            <div class="empty-state-title">Sin productos</div>
+            <div class="empty-state-sub">Agrega tu primer producto al catálogo</div>
+        </div>
+    }
+    else
+    {
+        <div style="overflow-x:auto;">
+            <table class="modern-table inv-table" id="prodTable">
+                <thead style="position:sticky;top:0;z-index:2;">
+                    <tr>
+                        <th>Producto</th>
+                        <th>Descripción</th>
+                        <th>Categoría</th>
+                        <th>Estado</th>
+                        <th class="col-actions">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="prodBody">
+                    @foreach (var item in Model)
+                    {
+                        var estadoVal = item.Disponible ? "disponible" : "pausado";
+                        <tr class="prod-row inv-row"
+                            data-nombre="@item.NombreProducto.ToLower()"
+                            data-desc="@(item.Descripcion?.ToLower() ?? "")"
+                            data-cat="@item.Categoria?.NombreCategoria"
+                            data-estado="@estadoVal">
+                            <td>
+                                <div class="product-cell">
+                                    @if (!string.IsNullOrEmpty(item.Imagen))
+                                    {
+                                        <img src="@item.Imagen" alt="@item.NombreProducto" class="product-thumb" />
+                                    }
+                                    else
+                                    {
+                                        <div class="product-thumb-placeholder"><i class="bi bi-cup-hot"></i></div>
+                                    }
+                                    <div class="product-info-name">@item.NombreProducto</div>
+                                </div>
+                            </td>
+                            <td class="cell-secondary" style="max-width:200px;">
+                                <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;max-width:190px;">
+                                    @(string.IsNullOrEmpty(item.Descripcion) ? "—" : item.Descripcion)
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge-modern badge-categoria">@item.Categoria?.NombreCategoria</span>
+                            </td>
+                            <td>
+                                @if (item.Disponible)
+                                {
+                                    <span class="badge-modern badge-disponible"><span class="dot"></span>Disponible</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-modern badge-nodisponible"><span class="dot"></span>Pausado</span>
+                                }
+                            </td>
+                            <td class="col-actions">
+                                <div class="inv-menu-wrap">
+                                    <button class="inv-menu-btn" type="button"
+                                            onclick="toggleMenu(this)" aria-label="Acciones">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <div class="inv-dropdown">
+                                        <a asp-action="Details" asp-route-id="@item.ProductoId" class="inv-dropdown-item">
+                                            <i class="bi bi-eye"></i> Ver detalles
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@item.ProductoId" class="inv-dropdown-item">
+                                            <i class="bi bi-pencil"></i> Editar
+                                        </a>
+                                        <div class="inv-dropdown-divider"></div>
+                                        <a asp-action="Delete" asp-route-id="@item.ProductoId" class="inv-dropdown-item inv-dropdown-danger">
+                                            <i class="bi bi-trash3"></i> Eliminar
+                                        </a>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="empty-state" id="prodNoResults" style="display:none;">
+            <div class="empty-state-icon"><i class="bi bi-search"></i></div>
+            <div class="empty-state-title">Sin resultados</div>
+            <div class="empty-state-sub">Prueba con otros filtros o términos de búsqueda</div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+const prodRows = () => [...document.querySelectorAll('#prodBody .prod-row')];
+const prodNoRes = document.getElementById('prodNoResults');
+const prodCountEl = document.getElementById('prodCount');
+const prodTC = document.getElementById('prodTableCount');
+
+function applyProdFilters() {
+    const q      = (document.getElementById('prodSearch').value || '').toLowerCase();
+    const cat    = document.getElementById('filterCat').value;
+    const estado = document.getElementById('filterEstado').value;
+    let vis = 0;
+    prodRows().forEach(row => {
+        const matchQ  = !q || row.dataset.nombre.includes(q) || row.dataset.desc.includes(q);
+        const matchC  = !cat    || row.dataset.cat    === cat;
+        const matchE  = !estado || row.dataset.estado === estado;
+        const show = matchQ && matchC && matchE;
+        row.style.display = show ? '' : 'none';
+        if (show) vis++;
+    });
+    prodNoRes.style.display = vis === 0 ? '' : 'none';
+    prodCountEl.textContent = vis + ' resultado' + (vis !== 1 ? 's' : '');
+    prodTC.textContent = vis;
+}
+
+document.getElementById('prodSearch').addEventListener('input', applyProdFilters);
+document.getElementById('filterCat').addEventListener('change', applyProdFilters);
+document.getElementById('filterEstado').addEventListener('change', applyProdFilters);
+document.getElementById('filterOrden').addEventListener('change', () => {
+    const val = document.getElementById('filterOrden').value;
+    if (!val) { applyProdFilters(); return; }
+    const [col, dir] = val.split('-');
+    const tbody = document.getElementById('prodBody');
+    [...tbody.querySelectorAll('.prod-row')].sort((a, b) => {
+        const va = col === 'nombre' ? a.dataset.nombre : (a.dataset.cat || '');
+        const vb = col === 'nombre' ? b.dataset.nombre : (b.dataset.cat || '');
+        return dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    }).forEach(r => tbody.appendChild(r));
+    applyProdFilters();
+});
+
+document.getElementById('prodClearFilters').addEventListener('click', () => {
+    document.getElementById('prodSearch').value = '';
+    document.getElementById('filterCat').value = '';
+    document.getElementById('filterEstado').value = '';
+    document.getElementById('filterOrden').value = '';
+    applyProdFilters();
+});
+
+/* Menú 3 puntos — función global compartida */
+function toggleMenu(btn) {
+    document.querySelectorAll('.inv-dropdown.open').forEach(d => {
+        if (d !== btn.nextElementSibling) d.classList.remove('open');
+    });
+    btn.nextElementSibling.classList.toggle('open');
+}
+document.addEventListener('click', e => {
+    if (!e.target.closest('.inv-menu-wrap'))
+        document.querySelectorAll('.inv-dropdown.open').forEach(d => d.classList.remove('open'));
+});
+</script>
+}

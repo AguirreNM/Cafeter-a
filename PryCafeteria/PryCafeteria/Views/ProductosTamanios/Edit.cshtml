@@ -1,0 +1,94 @@
+@model PryCafeteria.Models.ProductosTamanio
+
+@{
+    ViewData["Title"] = "Editar variante";
+}
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title">Editar variante</h1>
+        <p class="page-subtitle">Actualiza el precio, stock y disponibilidad</p>
+    </div>
+    <a asp-action="Index" class="btn-cancel" style="width:auto;padding:0.52rem 1rem;">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+</div>
+
+<div style="max-width:520px;margin:0 auto;">
+    <div class="form-card">
+        <div class="form-card-header">
+            <div class="form-card-icon gold">
+                <i class="bi bi-pencil-square"></i>
+            </div>
+            <div>
+                <div class="form-card-title">Editar variante</div>
+                <div class="form-card-subtitle">@Model?.Producto?.NombreProducto — @Model?.Tamanio?.NombreTamanio</div>
+            </div>
+        </div>
+        <div class="form-card-body">
+            <form asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+                <input type="hidden" asp-for="ProductoTamanioId" />
+
+                <div class="field-group">
+                    <label asp-for="ProductoId" class="form-label">
+                        <i class="bi bi-cup-hot" style="color:var(--green-800);margin-right:4px;"></i>Producto
+                    </label>
+                    <select asp-for="ProductoId" class="form-select" asp-items="ViewBag.ProductoId"></select>
+                    <span asp-validation-for="ProductoId" class="field-error"></span>
+                </div>
+
+                <div class="field-group">
+                    <label asp-for="TamanioId" class="form-label">
+                        <i class="bi bi-rulers" style="color:var(--green-800);margin-right:4px;"></i>Tamaño
+                    </label>
+                    <select asp-for="TamanioId" class="form-select" asp-items="ViewBag.TamanioId"></select>
+                    <span asp-validation-for="TamanioId" class="field-error"></span>
+                </div>
+
+                <div class="field-group">
+                    <label asp-for="Precio" class="form-label">
+                        <i class="bi bi-tag" style="color:var(--green-800);margin-right:4px;"></i>Precio (S/)
+                    </label>
+                    <div class="input-prefix-wrap">
+                        <span class="input-prefix">S/</span>
+                        <input asp-for="Precio" class="form-control" step="0.01" min="0.01" />
+                    </div>
+                    <span asp-validation-for="Precio" class="field-error"></span>
+                </div>
+
+                <div class="field-group">
+                    <label asp-for="Stock" class="form-label">
+                        <i class="bi bi-boxes" style="color:var(--green-800);margin-right:4px;"></i>Stock
+                    </label>
+                    <input asp-for="Stock" class="form-control" min="0" type="number" />
+                    <span asp-validation-for="Stock" class="field-error"></span>
+                </div>
+
+                <div class="field-group">
+                    <div class="toggle-field">
+                        <div>
+                            <div class="toggle-info-title">Disponible para venta</div>
+                            <div class="toggle-info-desc">Los clientes podrán ordenar este ítem</div>
+                        </div>
+                        <div class="form-check form-switch mb-0">
+                            <input asp-for="Disponible" class="form-check-input" type="checkbox" role="switch" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">
+                        <i class="bi bi-floppy"></i> Guardar cambios
+                    </button>
+                    <a asp-action="Index" class="btn-cancel">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

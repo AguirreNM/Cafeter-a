@@ -1,0 +1,258 @@
+@model IEnumerable<PryCafeteria.Models.Pedido>
+@{
+    ViewData["Title"] = "Vista de Cocina";
+}
+
+<!-- ══ HEADER ══ -->
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title"><i class="bi bi-fire me-2" style="color:var(--amber-500);"></i>Vista de Cocina</h1>
+        <p class="page-subtitle">Pedidos activos en tiempo real — actualización automática cada 20 s</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+        <div id="statusPill" class="stat-pill" style="background:var(--green-50);border:1px solid var(--green-200);padding:6px 12px;border-radius:999px;font-size:.78rem;font-weight:600;color:var(--green-800);">
+            <i class="bi bi-circle-fill" style="font-size:.45rem;color:var(--green-600);"></i>
+            <span id="statusTxt">En vivo</span>
+        </div>
+        <span id="lastUpdate" style="font-size:.75rem;color:var(--gray-500);"></span>
+        <a asp-controller="Dashboard" asp-action="Index" class="btn-cancel" style="width:auto;padding:.45rem .9rem;">
+            <i class="bi bi-arrow-left"></i> Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- ══ PANEL ESTADÍSTICAS RÁPIDAS ══ -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:20px;">
+    <div class="data-card" style="padding:14px 16px;">
+        <div style="font-size:1.7rem;font-weight:900;color:var(--amber-600);" id="cntPendiente">@Model.Count(p => p.Estado == "Pendiente")</div>
+        <div style="font-size:.7rem;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:.06em;">Pendientes</div>
+    </div>
+    <div class="data-card" style="padding:14px 16px;">
+        <div style="font-size:1.7rem;font-weight:900;color:var(--blue-600);" id="cntEnProceso">@Model.Count(p => p.Estado == "EnProceso")</div>
+        <div style="font-size:.7rem;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:.06em;">En proceso</div>
+    </div>
+    <div class="data-card" style="padding:14px 16px;">
+        <div style="font-size:1.7rem;font-weight:900;color:var(--gray-700);" id="cntTotal">@Model.Count()</div>
+        <div style="font-size:.7rem;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:.06em;">Total activos</div>
+    </div>
+</div>
+
+<!-- ══ TABLERO DE PEDIDOS ══ -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;" id="boardContainer">
+
+    <!-- COLUMNA PENDIENTE -->
+    <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:var(--amber-500);"></div>
+            <span style="font-weight:700;font-size:.85rem;color:var(--amber-700);text-transform:uppercase;letter-spacing:.06em;">Pendiente</span>
+        </div>
+        <div id="colPendiente" style="display:grid;gap:10px;">
+            @await Html.PartialAsync("_TarjetasPedido", Model.Where(p => p.Estado == "Pendiente"))
+        </div>
+        <div id="emptyPendiente" class="@(Model.Any(p => p.Estado == "Pendiente") ? "d-none" : "")" 
+             style="text-align:center;padding:32px;background:#fff;border-radius:var(--r-lg);border:2px dashed var(--border);color:var(--gray-400);font-size:.85rem;">
+            <i class="bi bi-check-circle" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
+            Sin pedidos pendientes
+        </div>
+    </div>
+
+    <!-- COLUMNA EN PROCESO -->
+    <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:var(--blue-500);"></div>
+            <span style="font-weight:700;font-size:.85rem;color:var(--blue-700);text-transform:uppercase;letter-spacing:.06em;">En Proceso</span>
+        </div>
+        <div id="colEnProceso" style="display:grid;gap:10px;">
+            @await Html.PartialAsync("_TarjetasPedido", Model.Where(p => p.Estado == "EnProceso"))
+        </div>
+        <div id="emptyEnProceso" class="@(Model.Any(p => p.Estado == "EnProceso") ? "d-none" : "")"
+             style="text-align:center;padding:32px;background:#fff;border-radius:var(--r-lg);border:2px dashed var(--border);color:var(--gray-400);font-size:.85rem;">
+            <i class="bi bi-hourglass" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
+            Sin pedidos en proceso
+        </div>
+    </div>
+
+</div>
+
+<!-- Token CSRF para peticiones POST del polling -->
+@Html.AntiForgeryToken()
+
+<style>
+.cocina-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 14px 16px;
+    box-shadow: var(--shadow-xs);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+.cocina-card::before {
+    content: '';
+    position: absolute; top:0; left:0; bottom:0; width:3px;
+}
+.cocina-card.estado-Pendiente::before  { background: var(--amber-500); }
+.cocina-card.estado-EnProceso::before  { background: var(--blue-500); }
+
+.cocina-card:hover { box-shadow: var(--shadow-md); }
+
+.cocina-card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.cocina-pedido-num  { font-weight:800; font-size:.95rem; color:var(--gray-900); }
+.cocina-hora        { font-size:.72rem; color:var(--gray-500); font-family:monospace; }
+
+.cocina-items { margin-bottom:12px; }
+.cocina-item  { display:flex; align-items:center; gap:8px; padding:4px 0; border-bottom:1px solid var(--border-subtle); }
+.cocina-item:last-child { border-bottom:none; }
+.cocina-item-qty { width:22px; height:22px; border-radius:50%; background:var(--green-100); color:var(--green-800);
+                   display:flex; align-items:center; justify-content:center; font-size:.7rem; font-weight:700; flex-shrink:0; }
+.cocina-item-name { font-size:.82rem; font-weight:600; color:var(--gray-800); }
+.cocina-item-size  { font-size:.72rem; color:var(--gray-500); margin-left:4px; }
+
+.cocina-footer { display:flex; align-items:center; justify-content:space-between; margin-top:8px; }
+.cocina-tipo   { font-size:.72rem; padding:2px 8px; border-radius:999px; font-weight:600; }
+.cocina-tipo.recojo   { background:var(--green-100); color:var(--green-800); }
+.cocina-tipo.delivery { background:var(--blue-100);  color:var(--blue-700); }
+
+.btn-avanzar {
+    padding: 5px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: .78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-avanzar-pendiente  { background:var(--blue-600); color:#fff; }
+.btn-avanzar-pendiente:hover  { background:var(--blue-700); }
+.btn-avanzar-enproceso  { background:var(--green-700); color:#fff; }
+.btn-avanzar-enproceso:hover  { background:var(--green-800); }
+
+.card-nuevo {
+    animation: cocinaPop .35s cubic-bezier(.34,1.56,.64,1) both;
+}
+@@keyframes cocinaPop {
+    from { opacity:0; transform:scale(.92) translateY(-8px); }
+    to   { opacity:1; transform:scale(1)   translateY(0); }
+}
+</style>
+
+@section Scripts {
+<script>
+(function() {
+    const token   = document.querySelector('[name="__RequestVerificationToken"]').value;
+    const urlData = '@Url.Action("CocinaData","Dashboard")';
+    const urlAvan = '@Url.Action("AvanzarEstadoCocina","Dashboard")';
+
+    // ── Render de una tarjeta ──────────────────────────────────────────────
+    function buildCard(p) {
+        const tipoClass = p.tipoEntrega === 'Delivery' ? 'delivery' : 'recojo';
+        const tipoLabel = p.tipoEntrega === 'Delivery' ? '<i class="bi bi-bicycle me-1"></i>Delivery' : '<i class="bi bi-shop me-1"></i>Recojo';
+        const estadoCss = p.estado === 'Pendiente' ? 'pendiente' : 'enproceso';
+        const btnLabel  = p.estado === 'Pendiente' ? 'Tomar pedido' : 'Marcar Listo';
+        const btnClass  = p.estado === 'Pendiente' ? 'btn-avanzar-pendiente' : 'btn-avanzar-enproceso';
+
+        const items = (p.items || []).map(it =>
+            `<div class="cocina-item">
+                <div class="cocina-item-qty">${it.cantidad}</div>
+                <span class="cocina-item-name">${escHtml(it.nombreProductoSnapshot ?? '—')}</span>
+                <span class="cocina-item-size">${escHtml(it.nombreTamanioSnapshot ?? '')}</span>
+            </div>`
+        ).join('');
+
+        return `<div class="cocina-card estado-${p.estado} card-nuevo" data-id="${p.pedidoId}">
+            <div class="cocina-card-header">
+                <span class="cocina-pedido-num">#${p.pedidoId}</span>
+                <span class="cocina-hora">${p.fechaPedido}</span>
+            </div>
+            <div style="font-size:.78rem;color:var(--gray-600);margin-bottom:8px;">
+                <i class="bi bi-person" style="margin-right:4px;"></i>${escHtml(p.cliente)}
+            </div>
+            <div class="cocina-items">${items}</div>
+            <div class="cocina-footer">
+                <span class="cocina-tipo ${tipoClass}">${tipoLabel}</span>
+                <button class="btn-avanzar ${btnClass}"
+                        onclick="avanzar(${p.pedidoId}, this)">
+                    ${btnLabel} <i class="bi bi-arrow-right-short"></i>
+                </button>
+            </div>
+        </div>`;
+    }
+
+    // ── Avanzar estado de un pedido ────────────────────────────────────────
+    window.avanzar = async function(id, btn) {
+        btn.disabled = true;
+        btn.textContent = '…';
+        try {
+            const r = await fetch(urlAvan, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded',
+                           'RequestVerificationToken': token },
+                body: `pedidoId=${id}`
+            });
+            if (r.ok) await refresh();
+        } catch(e) {
+            btn.disabled = false;
+            console.error(e);
+        }
+    };
+
+    // ── Polling: refresca el tablero ──────────────────────────────────────
+    async function refresh() {
+        try {
+            const res  = await fetch(urlData);
+            const data = await res.json();
+
+            const pendientes = data.filter(p => p.estado === 'Pendiente');
+            const enProceso  = data.filter(p => p.estado === 'EnProceso');
+
+            renderCol('colPendiente',  'emptyPendiente',  pendientes);
+            renderCol('colEnProceso',  'emptyEnProceso',  enProceso);
+
+            // Actualizar contadores
+            document.getElementById('cntPendiente').textContent = pendientes.length;
+            document.getElementById('cntEnProceso').textContent = enProceso.length;
+            document.getElementById('cntTotal').textContent = data.length;
+
+            const now = new Date().toLocaleTimeString('es-PE', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+            document.getElementById('lastUpdate').textContent = 'Actualizado: ' + now;
+            document.getElementById('statusTxt').textContent = 'En vivo';
+            document.getElementById('statusPill').style.borderColor = 'var(--green-200)';
+        } catch(e) {
+            document.getElementById('statusTxt').textContent = 'Sin conexión';
+            document.getElementById('statusPill').style.borderColor = 'var(--red-200)';
+        }
+    }
+
+    function renderCol(colId, emptyId, items) {
+        const col   = document.getElementById(colId);
+        const empty = document.getElementById(emptyId);
+        const ids   = new Set(items.map(p => p.pedidoId));
+
+        // Eliminar tarjetas que ya no están
+        col.querySelectorAll('[data-id]').forEach(card => {
+            if (!ids.has(parseInt(card.dataset.id))) card.remove();
+        });
+
+        // Agregar/actualizar tarjetas existentes
+        items.forEach(p => {
+            const existing = col.querySelector(`[data-id="${p.pedidoId}"]`);
+            if (!existing) {
+                col.insertAdjacentHTML('beforeend', buildCard(p));
+            }
+        });
+
+        empty.classList.toggle('d-none', items.length > 0);
+    }
+
+    function escHtml(s) {
+        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // Polling cada 20 segundos
+    setInterval(refresh, 20000);
+    // Primer refresh al cargar
+    refresh();
+})();
+</script>
+}

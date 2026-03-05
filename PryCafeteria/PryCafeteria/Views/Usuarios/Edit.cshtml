@@ -1,0 +1,81 @@
+@model PryCafeteria.Models.ViewModels.UsuarioViewModel
+@{ ViewData["Title"] = "Editar Usuario"; }
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title">Editar Usuario</h1>
+        <p class="page-subtitle">Modifica los datos del administrador</p>
+    </div>
+    <a asp-action="Index" class="btn-cancel" style="width:auto;padding:0.52rem 1rem;">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver
+    </a>
+</div>
+
+<div style="max-width:520px;margin:0 auto;">
+    <div class="form-card">
+        <div class="form-card-header">
+            <div class="form-card-icon gold">
+                <i class="bi bi-person-gear" aria-hidden="true"></i>
+            </div>
+            <div>
+                <div class="form-card-title">Editar administrador</div>
+                <div class="form-card-subtitle">La contraseña no se puede modificar desde aquí</div>
+            </div>
+        </div>
+        <div class="form-card-body">
+            <form asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+                <input type="hidden" asp-for="Id" />
+
+                <div class="field-group">
+                    <label asp-for="Nombre" class="form-label">
+                        <i class="bi bi-person" style="color:var(--green-800);margin-right:5px;" aria-hidden="true"></i>Nombre
+                    </label>
+                    <input asp-for="Nombre" class="form-control" />
+                    <span asp-validation-for="Nombre" class="field-error"></span>
+                </div>
+
+                <div class="field-group">
+                    <label asp-for="Apellido" class="form-label">
+                        <i class="bi bi-person" style="color:var(--green-800);margin-right:5px;" aria-hidden="true"></i>Apellido
+                    </label>
+                    <input asp-for="Apellido" class="form-control" />
+                    <span asp-validation-for="Apellido" class="field-error"></span>
+                </div>
+
+                <div class="field-group">
+                    <label asp-for="Email" class="form-label">
+                        <i class="bi bi-envelope" style="color:var(--green-800);margin-right:5px;" aria-hidden="true"></i>Correo electrónico
+                    </label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="field-error"></span>
+                </div>
+
+                <div class="field-group">
+                    <label asp-for="Rol" class="form-label">
+                        <i class="bi bi-shield-check" style="color:var(--green-800);margin-right:5px;" aria-hidden="true"></i>Rol
+                    </label>
+                    <select asp-for="Rol" class="form-select">
+                        @foreach (var rol in ViewBag.Roles as List<string> ?? new List<string>())
+                        {
+                            <option value="@rol">@rol</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Rol" class="field-error"></span>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">
+                        <i class="bi bi-floppy" aria-hidden="true"></i> Guardar Cambios
+                    </button>
+                    <a asp-action="Index" class="btn-cancel">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

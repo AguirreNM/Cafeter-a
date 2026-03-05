@@ -1,0 +1,145 @@
+@model PryCafeteria.Models.ProductosTamanio
+
+@{
+    ViewData["Title"] = "Detalles de variante";
+    var pct = Model?.Stock == 0 ? 0 : Math.Min((double)(Model?.Stock ?? 0) / 20.0 * 100, 100);
+    var fillClass = Model?.Stock == 0 ? "empty" : Model?.Stock <= 5 ? "low" : "";
+}
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title">Detalles de variante</h1>
+        <p class="page-subtitle">@Model?.Producto?.NombreProducto — @Model?.Tamanio?.NombreTamanio</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+        <a asp-action="Edit" asp-route-id="@Model?.ProductoTamanioId" class="btn-cta">
+            <i class="bi bi-pencil"></i> Editar
+        </a>
+        <a asp-action="Index" class="btn-cancel" style="width:auto;padding:0.52rem 1rem;">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+
+<div style="max-width:520px;margin:0 auto;">
+    <div class="form-card">
+        <div class="form-card-header">
+            <div class="form-card-icon">
+                <i class="bi bi-diagram-3"></i>
+            </div>
+            <div>
+                <div class="form-card-title">@Model?.Producto?.NombreProducto</div>
+                <div class="form-card-subtitle">Tamaño: @Model?.Tamanio?.NombreTamanio@(string.IsNullOrEmpty(Model?.Producto?.Categoria?.NombreCategoria) ? "" : " · " + Model.Producto.Categoria.NombreCategoria)</div>
+            </div>
+        </div>
+        <div class="info-grid">
+            <div class="info-label">Precio</div>
+            <div class="info-value">
+                <span style="font-size:1.1rem;font-weight:700;color:var(--green-800);">S/ @Model?.Precio.ToString("0.00")</span>
+            </div>
+
+            <div class="info-label">Stock</div>
+            <div class="info-value">
+                <div class="stock-bar-wrap">
+                    <div class="stock-bar" style="width:80px;">
+                        <div class="stock-bar-fill @fillClass" style="width:@pct.ToString("0")%;"></div>
+                    </div>
+                    <span class="stock-number">@Model?.Stock unidades</span>
+                </div>
+            </div>
+
+            <div class="info-label">Estado</div>
+            <div class="info-value">
+                @if (Model?.Disponible == false)
+                {
+                    <span class="badge-modern badge-nodisponible"><span class="dot"></span>Pausado</span>
+                }
+                else if (Model?.Stock == 0)
+                {
+                    <span class="badge-modern badge-agotado"><span class="dot"></span>Agotado</span>
+                }
+                else if (Model?.Stock <= 5)
+                {
+                    <span class="badge-modern badge-bajo"><span class="dot"></span>Bajo stock</span>
+                }
+                else
+                {
+                    <span class="badge-modern badge-disponible"><span class="dot"></span>En stock</span>
+                }
+            </div>
+
+            <div class="info-label">Disponible</div>
+            <div class="info-value">
+                @if (Model?.Disponible == true)
+                {
+                    <span class="badge-modern badge-disponible"><span class="dot"></span>Sí, visible al cliente</span>
+                }
+                else
+                {
+                    <span class="badge-modern badge-nodisponible"><span class="dot"></span>No, oculto</span>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ HISTORIAL DE MOVIMIENTOS DE STOCK ══ -->
+@{
+    var movimientos = ViewBag.Movimientos as IEnumerable<PryCafeteria.Models.StockMovimiento>;
+}
+<div class="data-card" style="margin-top:24px;">
+    <div class="data-card-header">
+        <span class="data-card-title"><i class="bi bi-clock-history"></i> Historial de movimientos de stock</span>
+        <span class="data-card-count">@(movimientos?.Count() ?? 0)</span>
+    </div>
+    @if (movimientos == null || !movimientos.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="bi bi-clock-history"></i></div>
+            <div class="empty-state-title">Sin movimientos</div>
+            <div class="empty-state-sub">Aún no se han registrado cambios de stock para esta variante</div>
+        </div>
+    }
+    else
+    {
+        <div style="overflow-x:auto;">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Cantidad</th>
+                        <th>Stock resultante</th>
+                        <th>Usuario</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var mov in movimientos)
+                    {
+                        var tipoClass = mov.Tipo switch {
+                            "Ingreso" => "badge-disponible",
+                            "Venta"   => "badge-nodisponible",
+                            _         => "badge-categoria"
+                        };
+                        var signo = mov.Cantidad > 0 ? "+" : "";
+                        <tr>
+                            <td class="cell-secondary cell-mono">@mov.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                <span class="badge-modern @tipoClass">
+                                    <span class="dot"></span>@mov.Tipo
+                                </span>
+                            </td>
+                            <td style="font-weight:700;color:@(mov.Cantidad >= 0 ? "var(--green-700)" : "var(--red-600)")">
+                                @signo@mov.Cantidad
+                            </td>
+                            <td style="font-weight:600;">@mov.StockResultante</td>
+                            <td class="cell-secondary">
+                                @(mov.Usuario?.Nombre ?? mov.Usuario?.Email ?? "Sistema")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

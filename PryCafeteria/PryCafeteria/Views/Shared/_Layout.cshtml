@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — Cafetería Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <!--
+    ╔══════════════════════════════════════════════╗
+    ║  SIDEBAR — accesibilidad aplicada:           ║
+    ║  • role="navigation" + aria-label            ║
+    ║  • aria-current="page" en enlace activo      ║
+    ║  • Logo con alt descriptivo                  ║
+    ║  • Botón logout con type="submit" explícito  ║
+    ╚══════════════════════════════════════════════╝
+    -->
+    <aside class="sidebar" role="complementary" aria-label="Panel de navegación">
+
+        <!-- ══ LOGO — FIX #25: Logo real Starbucks en lugar de emoji ══ -->
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-img-wrap">
+                <!--
+                    Logo colocado aquí (sidebar header) por ser el punto de mayor
+                    visibilidad al abrir el panel. Una ubicación alternativa sería
+                    un header superior full-width, pero el sidebar logo es más
+                    coherente con el patrón de admin dashboard moderno.
+                -->
+                <img src="~/images/starbucks_logo.png"
+                     alt="Starbucks — Logo de marca"
+                     width="72"
+                     height="72"
+                     loading="eager" />
+            </div>
+            <div class="sidebar-logo-text">
+                <span class="sidebar-logo-name" aria-hidden="true">Cafetería</span>
+                <span class="sidebar-logo-sub" aria-hidden="true">Admin Panel</span>
+            </div>
+        </div>
+
+        <!-- ══ NAVEGACIÓN ══ -->
+        <nav class="sidebar-nav" role="navigation" aria-label="Menú principal">
+
+            @if (User.IsInRole("Admin"))
+            {
+                <!-- WCAG 2.4.6: headings y labels descriptivos -->
+                <p class="sidebar-section-label" id="nav-label-principal">Principal</p>
+                <ul role="list" aria-labelledby="nav-label-principal" style="list-style:none;padding:0;margin:0;">
+                    <li>
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")"
+                           asp-controller="Dashboard" asp-action="Index"
+                           aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "page" : null)">
+                            <i class="bi bi-grid-1x2" aria-hidden="true"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                </ul>
+
+                <p class="sidebar-section-label" id="nav-label-catalogo">Catálogo</p>
+                <ul role="list" aria-labelledby="nav-label-catalogo" style="list-style:none;padding:0;margin:0;">
+                    <li>
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Productos" ? "active" : "")"
+                           asp-controller="Productos" asp-action="Index"
+                           aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Productos" ? "page" : null)">
+                            <i class="bi bi-cup-hot" aria-hidden="true"></i>
+                            Productos
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Categorias" ? "active" : "")"
+                           asp-controller="Categorias" asp-action="Index"
+                           aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Categorias" ? "page" : null)">
+                            <i class="bi bi-folder2" aria-hidden="true"></i>
+                            Categorías
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Tamanios" ? "active" : "")"
+                           asp-controller="Tamanios" asp-action="Index"
+                           aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Tamanios" ? "page" : null)">
+                            <i class="bi bi-rulers" aria-hidden="true"></i>
+                            Tamaños
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "ProductosTamanios" ? "active" : "")"
+                           asp-controller="ProductosTamanios" asp-action="Index"
+                           aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "ProductosTamanios" ? "page" : null)"
+                           style="justify-content:space-between;">
+                            <span style="display:flex;align-items:center;gap:8px;">
+                                <i class="bi bi-diagram-3" aria-hidden="true"></i>
+                                Variantes & Stock
+                            </span>
+                            @{ int _sidebarStock = 0; try { if (ViewBag.StockBajoSidebar != null) _sidebarStock = (int)ViewBag.StockBajoSidebar; } catch { } }
+                            @if (_sidebarStock > 0)
+                            {
+                                <span class="sidebar-stock-badge" title="@_sidebarStock variante(s) con stock crítico">@_sidebarStock</span>
+                            }
+                        </a>
+                    </li>
+                </ul>
+
+                <p class="sidebar-section-label" id="nav-label-operaciones">Operaciones</p>
+                <ul role="list" aria-labelledby="nav-label-operaciones" style="list-style:none;padding:0;margin:0;">
+                    <li>
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Pedidos" ? "active" : "")"
+                           asp-controller="Pedidos" asp-action="Index"
+                           aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Pedidos" ? "page" : null)"
+                           style="justify-content:space-between;">
+                            <span style="display:flex;align-items:center;gap:8px;">
+                                <i class="bi bi-bag-check" aria-hidden="true"></i>
+                                Pedidos
+                            </span>
+                            @{ int _sidebarPend = 0; try { if (ViewBag.PedidosPendSidebar != null) _sidebarPend = (int)ViewBag.PedidosPendSidebar; } catch { } }
+                            @if (_sidebarPend > 0)
+                            {
+                                <span class="sidebar-stock-badge" style="background:var(--amber-600,#d97706);" title="@_sidebarPend pedido(s) pendiente(s)">@_sidebarPend</span>
+                            }
+                        </a>
+                    </li>
+                </ul>
+
+                <p class="sidebar-section-label" id="nav-label-comercial">Comercial</p>
+                <ul role="list" aria-labelledby="nav-label-comercial" style="list-style:none;padding:0;margin:0;">
+                    <li>
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Cupones" ? "active" : "")"
+                           asp-controller="Cupones" asp-action="Index"
+                           aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Cupones" ? "page" : null)">
+                            <i class="bi bi-ticket-perforated" aria-hidden="true"></i>
+                            Cupones
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "MetodosPagos" ? "active" : "")"
+                           asp-controller="MetodosPagos" asp-action="Index"
+                           aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "MetodosPagos" ? "page" : null)">
+                            <i class="bi bi-credit-card-2-front" aria-hidden="true"></i>
+                            Métodos de Pago
+                        </a>
+                    </li>
+                </ul>
+
+                <p class="sidebar-section-label" id="nav-label-reportes">Análisis</p>
+                <ul role="list" aria-labelledby="nav-label-reportes" style="list-style:none;padding:0;margin:0;">
+                    <li>
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Reportes" ? "active" : "")"
+                           asp-controller="Reportes" asp-action="Index"
+                           aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Reportes" ? "page" : null)">
+                            <i class="bi bi-bar-chart-line" aria-hidden="true"></i>
+                            Reportes
+                        </a>
+                    </li>
+                </ul>
+
+                <p class="sidebar-section-label" id="nav-label-acceso">Acceso</p>
+                <ul role="list" aria-labelledby="nav-label-acceso" style="list-style:none;padding:0;margin:0;">
+                    <li>
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Usuarios" ? "active" : "")"
+                           asp-controller="Usuarios" asp-action="Index"
+                           aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Usuarios" ? "page" : null)">
+                            <i class="bi bi-people" aria-hidden="true"></i>
+                            Usuarios
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Perfil" ? "active" : "")"
+                           asp-controller="Perfil" asp-action="Index"
+                           aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Perfil" ? "page" : null)">
+                            <i class="bi bi-person-circle" aria-hidden="true"></i>
+                            Mi perfil
+                        </a>
+                    </li>
+                </ul>
+            }
+            else
+            {
+                <p class="sidebar-section-label">Menú</p>
+                <ul role="list" style="list-style:none;padding:0;margin:0;">
+                    <li>
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")"
+                           asp-controller="Home" asp-action="Index"
+                           aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "page" : null)">
+                            <i class="bi bi-house" aria-hidden="true"></i>
+                            Inicio
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Catalogo" ? "active" : "")"
+                           asp-controller="Catalogo" asp-action="Index">
+                            <i class="bi bi-cup-hot" aria-hidden="true"></i>
+                            Ver menú
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Pedidos" ? "active" : "")"
+                           asp-controller="Pedidos" asp-action="MisPedidos">
+                            <i class="bi bi-bag-check" aria-hidden="true"></i>
+                            Mis pedidos
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Direcciones" ? "active" : "")"
+                           asp-controller="Direcciones" asp-action="Index">
+                            <i class="bi bi-geo-alt" aria-hidden="true"></i>
+                            Mis direcciones
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Perfil" ? "active" : "")"
+                           asp-controller="Perfil" asp-action="Index">
+                            <i class="bi bi-person-circle" aria-hidden="true"></i>
+                            Mi perfil
+                        </a>
+                    </li>
+                </ul>
+            }
+        </nav>
+
+        <!-- ══ FOOTER SIDEBAR: usuario + logout ══ -->
+        <div class="sidebar-footer">
+            <!-- Usuario actual: rol="status" para lectores de pantalla -->
+            <div class="sidebar-user" role="status" aria-label="Usuario actual">
+                <div class="sidebar-avatar" aria-hidden="true">
+                    @((User.FindFirst("Nombre")?.Value ?? User.Identity?.Name ?? "U").Substring(0, 1).ToUpper())
+                </div>
+                <div class="sidebar-user-info">
+                    <div class="sidebar-user-name">@(User.FindFirst("Nombre")?.Value ?? User.Identity?.Name)</div>
+                    <div class="sidebar-user-role">@(User.IsInRole("Admin") ? "Administrador" : "Cliente")</div>
+                </div>
+            </div>
+            <!-- Logout con form POST (protección CSRF) -->
+            <form asp-controller="Cuentas" asp-action="Logout" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="sidebar-logout" aria-label="Cerrar sesión del sistema">
+                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+                    Cerrar sesión
+                </button>
+            </form>
+        </div>
+
+    </aside>
+
+    <!-- ══ CONTENIDO PRINCIPAL ══ -->
+    <div class="main-wrapper">
+
+        <!-- Topbar: breadcrumb + estado sistema -->
+        <header class="topbar" role="banner">
+            <!-- WCAG 2.4.4: breadcrumb describe ubicación actual -->
+            <nav class="topbar-breadcrumb" aria-label="Ruta de navegación">
+                <span aria-label="Inicio">Cafetería</span>
+                <span class="sep" aria-hidden="true">›</span>
+                <span class="current" aria-current="page">@(ViewData["Title"] ?? "Panel")</span>
+            </nav>
+            <div class="topbar-actions" role="status" aria-live="polite" aria-label="Estado del sistema">
+                <div class="stat-pill">
+                    <i class="bi bi-circle-fill" aria-hidden="true" style="font-size:0.45rem;color:var(--green-800);"></i>
+                    <span>Sistema activo</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Contenido de página — rol="main" para skip links -->
+        <main class="page-content" role="main" id="main-content" tabindex="-1">
+            @RenderBody()
+        </main>
+
+        <!-- Footer -->
+        <footer class="main-footer" role="contentinfo">
+            <span>&copy; 2026 Cafetería</span>
+            <span>Sistema de Gestión v1.0</span>
+        </footer>
+
+    </div>
+}
+else
+{
+    <!-- Layout público (login/registro) sin sidebar -->
+    <div style="width:100%;">
+        @RenderBody()
+    </div>
+}
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

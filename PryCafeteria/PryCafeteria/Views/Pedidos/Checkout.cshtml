@@ -1,0 +1,170 @@
+@model PryCafeteria.Models.ViewModels.CheckoutViewModel
+@{
+    ViewData["Title"] = "Checkout";
+    Layout = "~/Views/Shared/_LayoutCliente.cshtml";
+}
+
+<h1 style="font-size:1.4rem;font-weight:800;color:#111827;margin-bottom:24px;">
+    <i class="bi bi-bag-check me-2"></i>Confirmar pedido
+</h1>
+
+<div style="display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start;">
+
+    <!-- ══ FORMULARIO ══ -->
+    <form asp-controller="Pedidos" asp-action="Checkout" method="post">
+        @Html.AntiForgeryToken()
+
+        <!-- Método de pago -->
+        <div style="background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:20px;margin-bottom:16px;">
+            <h3 style="font-size:.95rem;font-weight:700;color:#374151;margin-bottom:14px;">
+                <i class="bi bi-credit-card me-2 text-success"></i>Método de pago
+            </h3>
+            <div asp-validation-summary="ModelOnly" class="text-danger" style="font-size:.85rem;margin-bottom:8px;"></div>
+            <span asp-validation-for="MetodoPagoId" class="text-danger" style="font-size:.82rem;"></span>
+
+            <div style="display:flex;flex-direction:column;gap:8px;">
+                @foreach (var mp in Model.MetodosPago)
+                {
+                    <label style="display:flex;align-items:center;gap:12px;padding:12px 16px;border:2px solid #e5e7eb;border-radius:10px;cursor:pointer;">
+                        <input type="radio" name="MetodoPagoId" value="@mp.MetodoPagoId"
+                               style="accent-color:#1B4332;width:16px;height:16px;" />
+                        <span style="font-weight:600;font-size:.9rem;color:#374151;">@mp.NombreMetodoPago</span>
+                    </label>
+                }
+            </div>
+            <p style="font-size:.75rem;color:#9ca3af;margin-top:10px;background:#fffbeb;padding:8px 10px;border-radius:6px;">
+                <i class="bi bi-info-circle me-1"></i>Entorno de prueba — no se realizan cobros reales.
+            </p>
+        </div>
+
+        <!-- Tipo de entrega -->
+        <div style="background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:20px;margin-bottom:16px;">
+            <h3 style="font-size:.95rem;font-weight:700;color:#374151;margin-bottom:14px;">
+                <i class="bi bi-truck me-2 text-success"></i>Tipo de entrega
+            </h3>
+
+            <div style="display:flex;gap:12px;margin-bottom:16px;">
+                <label id="lbl-recojo" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px;border:2px solid #1B4332;border-radius:10px;cursor:pointer;background:#f0fdf4;">
+                    <input type="radio" name="TipoEntrega" value="Recojo" checked
+                           onchange="onTipoEntregaChange(this)"
+                           style="accent-color:#1B4332;" />
+                    <i class="bi bi-shop" style="font-size:1.4rem;color:#1B4332;"></i>
+                    <span style="font-weight:600;font-size:.88rem;color:#374151;">Recojo en tienda</span>
+                </label>
+                <label id="lbl-delivery" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px;border:2px solid #e5e7eb;border-radius:10px;cursor:pointer;">
+                    <input type="radio" name="TipoEntrega" value="Delivery"
+                           onchange="onTipoEntregaChange(this)"
+                           style="accent-color:#1B4332;" />
+                    <i class="bi bi-bicycle" style="font-size:1.4rem;color:#6b7280;"></i>
+                    <span style="font-weight:600;font-size:.88rem;color:#374151;">Delivery</span>
+                </label>
+            </div>
+
+            <!-- Dirección (solo si Delivery) -->
+            <div id="seccion-direccion" style="display:none;">
+                <span asp-validation-for="DireccionId" class="text-danger" style="font-size:.82rem;"></span>
+
+                @if (Model.Direcciones.Any())
+                {
+                    <label style="font-size:.85rem;color:#374151;font-weight:600;display:block;margin-bottom:8px;">Selecciona una dirección</label>
+                    <select name="DireccionId"
+                            style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:.88rem;margin-bottom:12px;">
+                        <option value="">— Nueva dirección —</option>
+                        @foreach (var dir in Model.Direcciones)
+                        {
+                            <option value="@dir.DireccionId">@dir.NombreDireccion — @dir.Calle @dir.Numero, @dir.Distrito</option>
+                        }
+                    </select>
+                }
+
+                <!-- Nueva dirección inline -->
+                <details style="margin-top:8px;">
+                    <summary style="font-size:.85rem;color:#1B4332;font-weight:600;cursor:pointer;margin-bottom:10px;">+ Agregar nueva dirección</summary>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
+                        <div>
+                            <label style="font-size:.8rem;color:#6b7280;">Nombre (ej: Casa, Trabajo)</label>
+                            <input name="NuevaDireccion.NombreDireccion" placeholder="Mi casa"
+                                   style="width:100%;padding:7px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:.85rem;" />
+                        </div>
+                        <div>
+                            <label style="font-size:.8rem;color:#6b7280;">Distrito *</label>
+                            <input name="NuevaDireccion.Distrito" placeholder="Miraflores"
+                                   style="width:100%;padding:7px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:.85rem;" />
+                        </div>
+                        <div>
+                            <label style="font-size:.8rem;color:#6b7280;">Calle *</label>
+                            <input name="NuevaDireccion.Calle" placeholder="Av. Larco"
+                                   style="width:100%;padding:7px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:.85rem;" />
+                        </div>
+                        <div>
+                            <label style="font-size:.8rem;color:#6b7280;">Número</label>
+                            <input name="NuevaDireccion.Numero" placeholder="123"
+                                   style="width:100%;padding:7px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:.85rem;" />
+                        </div>
+                        <div style="grid-column:span 2;">
+                            <label style="font-size:.8rem;color:#6b7280;">Referencias</label>
+                            <input name="NuevaDireccion.Referencias" placeholder="Frente al parque, piso 3..."
+                                   style="width:100%;padding:7px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:.85rem;" />
+                        </div>
+                    </div>
+                </details>
+
+                <div style="margin-top:12px;background:#e0f2fe;padding:10px 14px;border-radius:8px;font-size:.82rem;color:#0369a1;">
+                    <i class="bi bi-clock me-1"></i>Tiempo estimado de entrega: 30–45 minutos
+                </div>
+            </div>
+
+            <div id="seccion-recojo" style="background:#f0fdf4;padding:10px 14px;border-radius:8px;font-size:.85rem;color:#166534;">
+                <i class="bi bi-geo-alt me-1"></i>Dirección de tienda: Av. Larco 345, Miraflores
+                <br><small>Horario: Lun–Dom 7am–10pm</small>
+            </div>
+        </div>
+
+        <button type="submit"
+                style="width:100%;padding:14px;background:#1B4332;color:#fff;border:none;border-radius:10px;font-weight:800;font-size:1rem;cursor:pointer;">
+            <i class="bi bi-lock-fill me-2"></i>Confirmar pedido
+        </button>
+    </form>
+
+    <!-- ══ RESUMEN ══ -->
+    <div style="background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:20px;position:sticky;top:80px;">
+        <h3 style="font-size:.95rem;font-weight:700;color:#374151;margin-bottom:14px;">Tu pedido</h3>
+        @foreach (var item in Model.Carrito!.Items)
+        {
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:.85rem;color:#374151;">
+                <span>@item.Cantidad× @item.NombreProducto <small style="color:#9ca3af;">@item.NombreTamanio</small></span>
+                <span style="font-weight:600;">S/. @item.Subtotal.ToString("0.00")</span>
+            </div>
+        }
+        <hr style="border-color:#f3f4f6;margin:12px 0;" />
+        <div style="display:flex;justify-content:space-between;font-size:.88rem;color:#6b7280;margin-bottom:6px;">
+            <span>Subtotal</span><span>S/. @Model.Carrito.Subtotal.ToString("0.00")</span>
+        </div>
+        @if (Model.Carrito.Descuento > 0)
+        {
+            <div style="display:flex;justify-content:space-between;font-size:.88rem;color:#16a34a;margin-bottom:6px;">
+                <span>Descuento (@Model.Carrito.CuponCodigo)</span>
+                <span>−S/. @Model.Carrito.Descuento.ToString("0.00")</span>
+            </div>
+        }
+        <div style="display:flex;justify-content:space-between;font-weight:800;font-size:1.1rem;color:#111827;margin-top:8px;">
+            <span>Total</span><span>S/. @Model.Carrito.Total.ToString("0.00")</span>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function onTipoEntregaChange(radio) {
+    var esDelivery = radio.value === 'Delivery';
+    document.getElementById('seccion-direccion').style.display = esDelivery ? 'block' : 'none';
+    document.getElementById('seccion-recojo').style.display = esDelivery ? 'none' : 'block';
+    var lblD = document.getElementById('lbl-delivery');
+    var lblR = document.getElementById('lbl-recojo');
+    lblD.style.borderColor = esDelivery ? '#1B4332' : '#e5e7eb';
+    lblD.style.background = esDelivery ? '#f0fdf4' : '';
+    lblR.style.borderColor = esDelivery ? '#e5e7eb' : '#1B4332';
+    lblR.style.background = esDelivery ? '' : '#f0fdf4';
+}
+</script>
+}

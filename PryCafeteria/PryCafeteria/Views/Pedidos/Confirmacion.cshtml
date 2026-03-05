@@ -1,0 +1,121 @@
+@model PryCafeteria.Models.Pedido
+@{
+    ViewData["Title"] = $"Pedido #{Model.PedidoId} confirmado";
+    Layout = "~/Views/Shared/_LayoutCliente.cshtml";
+}
+
+<div style="max-width:640px;margin:0 auto;text-align:center;padding:40px 0 20px;">
+    <div style="width:72px;height:72px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+        <i class="bi bi-check-lg" style="font-size:2rem;color:#16a34a;"></i>
+    </div>
+    <h1 style="font-size:1.6rem;font-weight:800;color:#111827;margin-bottom:8px;">¡Pedido confirmado!</h1>
+    <p style="color:#6b7280;font-size:.95rem;margin-bottom:32px;">
+        Tu pedido <strong>#@Model.PedidoId</strong> fue registrado exitosamente el @Model.FechaPedido.ToString("dd/MM/yyyy") a las @Model.FechaPedido.ToString("HH:mm").
+    </p>
+</div>
+
+<div style="max-width:640px;margin:0 auto;">
+    <!-- Estado -->
+    <div style="background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:20px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <h3 style="font-size:.95rem;font-weight:700;color:#374151;margin:0;">Estado del pedido</h3>
+            <span style="background:#fef3c7;color:#92400e;padding:4px 12px;border-radius:20px;font-size:.8rem;font-weight:700;">
+                🟡 @Model.Estado
+            </span>
+        </div>
+
+        <!-- Timeline -->
+        @{
+            var pasos = new[] { "Pendiente", "EnProceso", "Listo", "Entregado" };
+            var estadosLabels = new Dictionary<string, string>
+            {
+                ["Pendiente"]  = "Pendiente",
+                ["EnProceso"]  = "En preparación",
+                ["Listo"]      = "Listo",
+                ["Entregado"]  = "Entregado"
+            };
+            var currentIdx = Array.IndexOf(pasos, Model.Estado);
+        }
+        <div style="display:flex;align-items:center;gap:0;">
+            @for (int i = 0; i < pasos.Length; i++)
+            {
+                var done = i <= currentIdx && Model.Estado != "Cancelado";
+                var current = i == currentIdx && Model.Estado != "Cancelado";
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+                    <div style="width:28px;height:28px;border-radius:50%;background:@(done ? "#1B4332" : "#e5e7eb");display:flex;align-items:center;justify-content:center;">
+                        @if (done)
+                        {
+                            <i class="bi bi-check" style="color:#fff;font-size:.8rem;"></i>
+                        }
+                    </div>
+                    <span style="font-size:.7rem;color:@(current ? "#1B4332" : "#9ca3af");font-weight:@(current ? "700" : "400");text-align:center;">
+                        @(estadosLabels.ContainsKey(pasos[i]) ? estadosLabels[pasos[i]] : pasos[i])
+                    </span>
+                </div>
+                @if (i < pasos.Length - 1)
+                {
+                    <div style="flex:1;height:2px;background:@(i < currentIdx ? "#1B4332" : "#e5e7eb");margin-bottom:20px;"></div>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- Detalle de productos -->
+    <div style="background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:20px;margin-bottom:16px;">
+        <h3 style="font-size:.95rem;font-weight:700;color:#374151;margin-bottom:14px;">Productos pedidos</h3>
+        @foreach (var det in Model.DetallePedidos)
+        {
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:.88rem;color:#374151;border-bottom:1px solid #f9fafb;padding-bottom:8px;">
+                <span>@det.Cantidad× @(det.NombreProductoSnapshot ?? det.ProductoTamanio.Producto.NombreProducto)
+                    <small style="color:#9ca3af;">@(det.NombreTamanioSnapshot ?? det.ProductoTamanio.Tamanio.NombreTamanio)</small>
+                </span>
+                <span style="font-weight:600;">S/. @((det.Cantidad * det.PrecioUnitario).ToString("0.00"))</span>
+            </div>
+        }
+        @if (Model.Descuento > 0)
+        {
+            <div style="display:flex;justify-content:space-between;font-size:.88rem;color:#16a34a;margin-top:6px;">
+                <span>Descuento</span><span>−S/. @Model.Descuento.ToString("0.00")</span>
+            </div>
+        }
+        <div style="display:flex;justify-content:space-between;font-weight:800;font-size:1rem;color:#111827;margin-top:10px;">
+            <span>Total pagado</span><span>S/. @Model.Total.ToString("0.00")</span>
+        </div>
+    </div>
+
+    <!-- Info entrega y pago -->
+    <div style="background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:20px;margin-bottom:24px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:.85rem;color:#374151;">
+            <div>
+                <p style="color:#9ca3af;font-size:.75rem;margin-bottom:2px;">MÉTODO DE PAGO</p>
+                <p style="font-weight:600;margin:0;">@Model.MetodoPago.NombreMetodoPago</p>
+            </div>
+            <div>
+                <p style="color:#9ca3af;font-size:.75rem;margin-bottom:2px;">TIPO DE ENTREGA</p>
+                <p style="font-weight:600;margin:0;">@Model.TipoEntrega</p>
+            </div>
+            @if (Model.Direccion != null)
+            {
+                <div style="grid-column:span 2;">
+                    <p style="color:#9ca3af;font-size:.75rem;margin-bottom:2px;">DIRECCIÓN</p>
+                    <p style="font-weight:600;margin:0;">@Model.Direccion.Calle @Model.Direccion.Numero, @Model.Direccion.Distrito</p>
+                    @if (!string.IsNullOrEmpty(Model.Direccion.Referencias))
+                    {
+                        <p style="color:#6b7280;margin:2px 0 0;font-size:.8rem;">@Model.Direccion.Referencias</p>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:center;">
+        <a asp-controller="Pedidos" asp-action="MisPedidos"
+           style="padding:10px 24px;background:#1B4332;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">
+            Ver mis pedidos
+        </a>
+        <a asp-controller="Catalogo" asp-action="Index"
+           style="padding:10px 24px;border:1px solid #d1d5db;color:#374151;border-radius:8px;text-decoration:none;font-weight:600;">
+            Seguir comprando
+        </a>
+    </div>
+</div>

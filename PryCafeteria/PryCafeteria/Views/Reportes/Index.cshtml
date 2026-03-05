@@ -1,0 +1,229 @@
+@{
+    ViewData["Title"] = "Reportes";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var topProductos = ViewBag.TopProductos as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+}
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title">Reportes</h1>
+        <p class="page-subtitle">Exporta datos del sistema en formato Excel</p>
+    </div>
+</div>
+
+<!-- ══ KPI del mes ══ -->
+<div class="kpi-grid" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr));margin-bottom:24px;">
+    <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-blue"><i class="bi bi-bag-check"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-value">@ViewBag.TotalPedidosMes</div>
+            <div class="kpi-label">Pedidos este mes</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-green"><i class="bi bi-cash-coin"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-value">S/ @(string.Format("{0:N2}", (decimal)ViewBag.IngresosMes))</div>
+            <div class="kpi-label">Ingresos del mes</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-red"><i class="bi bi-x-circle"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-value">@ViewBag.PedidosCancelados</div>
+            <div class="kpi-label">Cancelados este mes</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-purple"><i class="bi bi-people"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-value">@ViewBag.ClientesNuevosMes</div>
+            <div class="kpi-label">Nuevos clientes</div>
+        </div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">
+
+    <!-- ══ TARJETAS DE EXPORTACIÓN ══ -->
+    <div>
+        <h3 style="font-size:.9rem;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px;">
+            <i class="bi bi-download me-2"></i>Exportar reportes
+        </h3>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+
+            <!-- Estilos de botones de reporte -->
+        <style>
+            .rpt-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                padding: 5px 12px;
+                font-size: .8rem;
+                font-weight: 600;
+                border-radius: 6px;
+                border: 1.5px solid #d1d5db;
+                background: #fff;
+                color: #374151;
+                text-decoration: none;
+                white-space: nowrap;
+                transition: background .15s, border-color .15s, color .15s;
+                cursor: pointer;
+            }
+            .rpt-btn:hover {
+                background: #f3f4f6;
+                border-color: #9ca3af;
+                color: #111827;
+                text-decoration: none;
+            }
+            .rpt-btn-download {
+                background: #f0fdf4;
+                border-color: #00704A;
+                color: #00704A;
+            }
+            .rpt-btn-download:hover {
+                background: #00704A;
+                color: #fff;
+                border-color: #00704A;
+            }
+        </style>
+
+            <!-- Ventas -->
+            <div class="data-card" style="padding:18px 20px;">
+                <div style="display:flex;align-items:center;gap:14px;">
+                    <div style="width:44px;height:44px;border-radius:10px;background:#dcfce7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="bi bi-graph-up-arrow" style="color:#16a34a;font-size:1.2rem;"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <p style="font-weight:700;color:#111827;margin:0 0 2px;">Reporte de ventas</p>
+                        <p style="font-size:.8rem;color:#6b7280;margin:0;">Pedidos con detalles, montos y estados</p>
+                    </div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                        <a asp-controller="Reportes" asp-action="ExportarVentas" asp-route-periodo="hoy"
+                           class="rpt-btn">Hoy</a>
+                        <a asp-controller="Reportes" asp-action="ExportarVentas" asp-route-periodo="semana"
+                           class="rpt-btn">Semana</a>
+                        <a asp-controller="Reportes" asp-action="ExportarVentas" asp-route-periodo="mes"
+                           class="rpt-btn">Mes</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stock -->
+            <div class="data-card" style="padding:18px 20px;">
+                <div style="display:flex;align-items:center;gap:14px;">
+                    <div style="width:44px;height:44px;border-radius:10px;background:#fef3c7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="bi bi-boxes" style="color:#d97706;font-size:1.2rem;"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <p style="font-weight:700;color:#111827;margin:0 0 2px;">Reporte de stock</p>
+                        <p style="font-size:.8rem;color:#6b7280;margin:0;">Inventario actual con estados y precios</p>
+                    </div>
+                    <a asp-controller="Reportes" asp-action="ExportarStock"
+                       class="rpt-btn rpt-btn-download">
+                        <i class="bi bi-file-earmark-excel"></i> Descargar
+                    </a>
+                </div>
+            </div>
+
+            <!-- Productos -->
+            <div class="data-card" style="padding:18px 20px;">
+                <div style="display:flex;align-items:center;gap:14px;">
+                    <div style="width:44px;height:44px;border-radius:10px;background:#ede9fe;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="bi bi-cup-hot" style="color:#7c3aed;font-size:1.2rem;"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <p style="font-weight:700;color:#111827;margin:0 0 2px;">Catálogo de productos</p>
+                        <p style="font-size:.8rem;color:#6b7280;margin:0;">Todos los productos con categorías</p>
+                    </div>
+                    <a asp-controller="Reportes" asp-action="ExportarProductos"
+                       class="rpt-btn rpt-btn-download">
+                        <i class="bi bi-file-earmark-excel"></i> Descargar
+                    </a>
+                </div>
+            </div>
+
+            <!-- Clientes -->
+            <div class="data-card" style="padding:18px 20px;">
+                <div style="display:flex;align-items:center;gap:14px;">
+                    <div style="width:44px;height:44px;border-radius:10px;background:#dbeafe;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="bi bi-people" style="color:#2563eb;font-size:1.2rem;"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <p style="font-weight:700;color:#111827;margin:0 0 2px;">Clientes frecuentes</p>
+                        <p style="font-size:.8rem;color:#6b7280;margin:0;">Top 100 por monto gastado</p>
+                    </div>
+                    <a asp-controller="Reportes" asp-action="ExportarClientes"
+                       class="rpt-btn rpt-btn-download">
+                        <i class="bi bi-file-earmark-excel"></i> Descargar
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══ TOP PRODUCTOS DEL MES ══ -->
+    <div>
+        <h3 style="font-size:.9rem;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px;">
+            <i class="bi bi-trophy me-2"></i>Top productos del mes
+        </h3>
+        <div class="data-card" style="padding:0;overflow:hidden;">
+            @if (!topProductos.Any())
+            {
+                <div style="text-align:center;padding:40px;color:#9ca3af;">
+                    <i class="bi bi-cup-hot" style="font-size:2rem;"></i>
+                    <p style="margin-top:8px;">Sin ventas este mes</p>
+                </div>
+            }
+            else
+            {
+                var maxCant = (int)topProductos.Max(p => (int)p.Cantidad);
+                int rank = 0;
+                @foreach (var p in topProductos)
+                {
+                    rank++;
+                    var pct = maxCant > 0 ? (int)p.Cantidad * 100 / maxCant : 0;
+                    var medalColor = rank switch { 1 => "#f59e0b", 2 => "#94a3b8", 3 => "#b45309", _ => "#d1d5db" };
+                    <div style="padding:14px 20px;border-bottom:1px solid #f9fafb;display:flex;align-items:center;gap:12px;">
+                        <span style="width:24px;height:24px;border-radius:50%;background:@medalColor;color:#fff;font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            @rank
+                        </span>
+                        <div style="flex:1;min-width:0;">
+                            <p style="font-weight:600;color:#111827;margin:0 0 4px;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                @p.Nombre
+                            </p>
+                            <div style="height:4px;background:#f3f4f6;border-radius:4px;overflow:hidden;">
+                                <div style="height:100%;width:@pct%;background:#1B4332;border-radius:4px;"></div>
+                            </div>
+                        </div>
+                        <span style="font-weight:700;color:#1B4332;font-size:.9rem;flex-shrink:0;">@p.Cantidad u.</span>
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- Accesos rápidos -->
+        <h3 style="font-size:.9rem;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.05em;margin:20px 0 14px;">
+            <i class="bi bi-lightning me-2"></i>Accesos rápidos
+        </h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            @foreach (var (label, icon, ctrl, action) in new[]
+            {
+                ("Pedidos",    "bi-bag-check",          "Pedidos",          "Index"),
+                ("Productos",  "bi-cup-hot",             "Productos",        "Index"),
+                ("Usuarios",   "bi-people",              "Usuarios",         "Index"),
+                ("Cupones",    "bi-ticket-perforated",   "Cupones",          "Index"),
+                ("Stock",      "bi-diagram-3",           "ProductosTamanios","Index"),
+                ("Dashboard",  "bi-grid-1x2",            "Dashboard",        "Index"),
+            })
+            {
+                <a asp-controller="@ctrl" asp-action="@action"
+                   style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none;color:#374151;font-size:.85rem;font-weight:600;background:#fff;transition:background .15s;"
+                   onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">
+                    <i class="bi @icon" style="color:#1B4332;"></i>@label
+                </a>
+            }
+        </div>
+    </div>
+</div>

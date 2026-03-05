@@ -1,0 +1,492 @@
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<!-- ══ DASHBOARD ══ -->
+
+<!-- Header -->
+@{ var limaTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "SA Pacific Standard Time"); }
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title">Bienvenido de nuevo 👋</h1>
+        <p class="page-subtitle">
+            @limaTime.ToString("dddd, dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("es-PE"))
+            &middot; Panel Administrativo
+        </p>
+    </div>
+    <a asp-controller="Productos" asp-action="Create" class="btn-cta">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> Nuevo producto
+    </a>
+</div>
+
+<!-- ══ STAT CARDS ══ -->
+<div class="dash-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:28px;">
+
+    <div class="dash-stat-card">
+        <div class="dsc-icon" style="background:var(--green-100);color:var(--green-800);">
+            <i class="bi bi-cup-hot-fill"></i>
+        </div>
+        <div class="dsc-value">@ViewBag.TotalProductos</div>
+        <div class="dsc-label">Productos</div>
+        <a asp-controller="Productos" asp-action="Index" class="dsc-link">Ver catálogo <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dsc-icon" style="background:var(--gold-100);color:var(--gold-700);">
+            <i class="bi bi-folder2-open"></i>
+        </div>
+        <div class="dsc-value">@ViewBag.TotalCategorias</div>
+        <div class="dsc-label">Categorías</div>
+        <a asp-controller="Categorias" asp-action="Index" class="dsc-link">Ver todas <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dsc-icon" style="background:var(--violet-100);color:var(--violet-600);">
+            <i class="bi bi-ticket-perforated-fill"></i>
+        </div>
+        <div class="dsc-value">@ViewBag.TotalCupones</div>
+        <div class="dsc-label">Cupones activos</div>
+        <a asp-controller="Cupones" asp-action="Index" class="dsc-link">Gestionar <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    <div class="dash-stat-card @(ViewBag.StockBajo > 0 ? "dsc-danger" : "")">
+        <div class="dsc-icon" style="background:@(ViewBag.StockBajo > 0 ? "var(--red-100)" : "var(--green-100)");color:@(ViewBag.StockBajo > 0 ? "var(--red-600)" : "var(--green-800)");">
+            <i class="bi bi-@(ViewBag.StockBajo > 0 ? "exclamation-triangle-fill" : "check-circle-fill")"></i>
+        </div>
+        <div class="dsc-value @(ViewBag.StockBajo > 0 ? "text-danger" : "")">@ViewBag.StockBajo</div>
+        <div class="dsc-label">Stock crítico</div>
+        <a asp-controller="ProductosTamanios" asp-action="Index" class="dsc-link">Ver stock <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dsc-icon" style="background:var(--blue-100);color:var(--blue-600);">
+            <i class="bi bi-bag-fill"></i>
+        </div>
+        <div class="dsc-value">@ViewBag.PedidosHoy</div>
+        <div class="dsc-label">Pedidos hoy</div>
+        @if (ViewBag.PedidosPendientes > 0)
+        {
+            <span class="badge-modern badge-bajo" style="margin-top:6px;">
+            <span class="dot" aria-hidden="true"></span>@ViewBag.PedidosPendientes pendiente(s)
+            </span>
+        }
+        else
+        {
+            <span class="dsc-label" style="font-size:0.72rem;">Todo al día</span>
+        }
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dsc-icon" style="background:var(--green-100);color:var(--green-800);">
+            <i class="bi bi-cash-stack"></i>
+        </div>
+        <div class="dsc-value" style="font-size:1.3rem;">S/ @string.Format("{0:N2}", (decimal)ViewBag.IngresosHoy)</div>
+        <div class="dsc-label">Ingresos hoy</div>
+        <span class="dsc-link" style="color:var(--gray-600);cursor:default;">Pedidos entregados</span>
+    </div>
+
+</div>
+
+<!-- ══ STOCK ALERT ══ -->
+@if (ViewBag.StockBajo > 0)
+{
+    <div class="stock-alert-banner">
+        <div class="sab-header">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <div style="width:28px;height:28px;background:var(--amber-100);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:0.9rem;">⚠️</div>
+                <span style="font-size:0.78rem;font-weight:700;color:var(--amber-700);text-transform:uppercase;letter-spacing:0.08em;">Stock crítico detectado</span>
+            </div>
+            <a asp-controller="ProductosTamanios" asp-action="Index" class="dsc-link" style="font-size:0.75rem;">Ver todo el stock <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;">
+            @foreach (var pt in ViewBag.ProductosStockBajo)
+            {
+                <div class="stock-alert-item">
+                    <div>
+                        <div style="font-weight:600;font-size:0.82rem;color:var(--gray-900);">@pt.Producto.NombreProducto</div>
+                        <div style="font-size:0.72rem;color:var(--gray-600);margin-top:1px;">@pt.Tamanio.NombreTamanio</div>
+                    </div>
+                    @if (pt.Stock == 0)
+                    {
+                        <span class="badge-modern badge-agotado"><span class="dot" aria-hidden="true"></span>Agotado</span>
+                    }
+                    else
+                    {
+                        <span class="badge-modern badge-bajo"><span class="dot" aria-hidden="true"></span>@pt.Stock unid.</span>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- ══ GRÁFICOS CHART.JS ══ -->
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px;">
+
+    <!-- Ventas últimos 7 días (línea) -->
+    <div class="data-card">
+        <div class="data-card-header">
+            <span class="data-card-title">Ventas — últimos 7 días</span>
+            <span style="font-size:0.72rem;color:var(--gray-500);">Solo pedidos entregados</span>
+        </div>
+        <div style="padding:16px 20px 18px;">
+            <canvas id="chartVentas" height="110" aria-label="Gráfico de ventas de los últimos 7 días" role="img"></canvas>
+        </div>
+    </div>
+
+    <!-- Top productos (barras horizontales) -->
+    <div class="data-card">
+        <div class="data-card-header">
+            <span class="data-card-title">Top productos</span>
+            <span style="font-size:0.72rem;color:var(--gray-500);">Por unidades vendidas</span>
+        </div>
+        <div style="padding:16px 20px 18px;">
+            <canvas id="chartTop" height="160" aria-label="Gráfico de productos más vendidos" role="img"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<!-- ══ BOTTOM GRID ══ -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+    <!-- Últimos productos -->
+    <div class="data-card">
+        <div class="data-card-header">
+            <span class="data-card-title">Últimos productos</span>
+            <a asp-controller="Productos" asp-action="Index" class="dsc-link" style="font-size:0.72rem;">Ver todos <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div>
+            @foreach (var p in ViewBag.UltimosProductos)
+            {
+                <div class="product-dash-row">
+                    <div class="product-dash-thumb">
+                        @if (!string.IsNullOrEmpty(p.Imagen))
+                        {
+                            <img src="@p.Imagen" alt="@p.NombreProducto" style="width:100%;height:100%;object-fit:cover;border-radius:var(--r-sm);" />
+                        }
+                        else
+                        {
+                            <span style="font-size:1.1rem;">☕</span>
+                        }
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-weight:600;font-size:0.85rem;color:var(--gray-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@p.NombreProducto</div>
+                        <div style="font-size:0.72rem;color:var(--gray-600);margin-top:1px;">@p.Categoria.NombreCategoria</div>
+                    </div>
+                    @if (p.Disponible)
+                    {
+                        <span class="badge-modern badge-disponible"><span class="dot" aria-hidden="true"></span>Disponible</span>
+                    }
+                    else
+                    {
+                        <span class="badge-modern badge-nodisponible"><span class="dot" aria-hidden="true"></span>Pausado</span>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Quick links -->
+    <div class="data-card">
+        <div class="data-card-header">
+            <span class="data-card-title">Acciones rápidas</span>
+        </div>
+        <div style="padding:16px;display:grid;gap:8px;">
+            <a asp-controller="Productos" asp-action="Create" class="quick-action-btn">
+                <div style="width:32px;height:32px;background:var(--green-100);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;color:var(--green-800);font-size:0.85rem;flex-shrink:0;">
+                    <i class="bi bi-plus-circle"></i>
+                </div>
+                <div>
+                    <div style="font-weight:600;font-size:0.82rem;color:var(--gray-900);">Agregar producto</div>
+                    <div style="font-size:0.72rem;color:var(--gray-600);">Nuevo ítem al catálogo</div>
+                </div>
+                <i class="bi bi-chevron-right" style="margin-left:auto;color:var(--gray-500);font-size:0.75rem;"></i>
+            </a>
+            <a asp-controller="Categorias" asp-action="Create" class="quick-action-btn">
+                <div style="width:32px;height:32px;background:var(--gold-100);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;color:var(--gold-700);font-size:0.85rem;flex-shrink:0;">
+                    <i class="bi bi-folder-plus"></i>
+                </div>
+                <div>
+                    <div style="font-weight:600;font-size:0.82rem;color:var(--gray-900);">Nueva categoría</div>
+                    <div style="font-size:0.72rem;color:var(--gray-600);">Organizar el menú</div>
+                </div>
+                <i class="bi bi-chevron-right" style="margin-left:auto;color:var(--gray-500);font-size:0.75rem;"></i>
+            </a>
+            <a asp-controller="Cupones" asp-action="Create" class="quick-action-btn">
+                <div style="width:32px;height:32px;background:var(--violet-100);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;color:var(--violet-600);font-size:0.85rem;flex-shrink:0;">
+                    <i class="bi bi-ticket-perforated"></i>
+                </div>
+                <div>
+                    <div style="font-weight:600;font-size:0.82rem;color:var(--gray-900);">Crear cupón</div>
+                    <div style="font-size:0.72rem;color:var(--gray-600);">Descuentos especiales</div>
+                </div>
+                <i class="bi bi-chevron-right" style="margin-left:auto;color:var(--gray-500);font-size:0.75rem;"></i>
+            </a>
+            <a asp-controller="ProductosTamanios" asp-action="Create" class="quick-action-btn">
+                <div style="width:32px;height:32px;background:var(--blue-100);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;color:var(--blue-600);font-size:0.85rem;flex-shrink:0;">
+                    <i class="bi bi-diagram-3"></i>
+                </div>
+                <div>
+                    <div style="font-weight:600;font-size:0.82rem;color:var(--gray-900);">Nueva variante</div>
+                    <div style="font-size:0.72rem;color:var(--gray-600);">Precio y tamaño</div>
+                </div>
+                <i class="bi bi-chevron-right" style="margin-left:auto;color:var(--gray-500);font-size:0.75rem;"></i>
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<style>
+/* ── Dashboard-specific styles ── */
+.dash-stat-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 18px;
+    box-shadow: var(--shadow-xs);
+    transition: var(--transition);
+    animation: fadeUp 0.24s var(--ease) both;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+    overflow: hidden;
+}
+
+.dash-stat-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--green-800), var(--gold-500));
+    opacity: 0;
+    transition: opacity 0.18s;
+}
+
+.dash-stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.dash-stat-card:hover::after { opacity: 1; }
+
+.dash-stat-card.dsc-danger { border-color: #fecaca; }
+.dash-stat-card.dsc-danger::after { background: linear-gradient(90deg, var(--red-600), #f87171); opacity: 1; }
+
+.dsc-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--r-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+}
+
+.dsc-value {
+    font-family: var(--font-display);
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: var(--gray-950);
+    line-height: 1;
+    letter-spacing: -0.04em;
+}
+
+.dsc-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+}
+
+.dsc-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--green-800);
+    text-decoration: none;
+    transition: gap 0.14s;
+    margin-top: 2px;
+}
+
+.dsc-link:hover { gap: 7px; }
+
+/* Stock alert */
+.stock-alert-banner {
+    background: var(--amber-50);
+    border: 1px solid var(--amber-100);
+    border-radius: var(--r-lg);
+    padding: 16px 18px;
+    margin-bottom: 16px;
+}
+
+.sab-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.stock-alert-item {
+    background: var(--white);
+    border: 1px solid #f0e4b8;
+    border-radius: var(--r-sm);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    transition: var(--transition);
+}
+
+.stock-alert-item:hover { box-shadow: var(--shadow-xs); }
+
+/* Product dash row */
+.product-dash-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 18px;
+    border-bottom: 1px solid var(--border-subtle);
+    transition: background 0.12s;
+}
+
+.product-dash-row:last-child { border-bottom: none; }
+.product-dash-row:hover { background: var(--green-50); }
+
+.product-dash-thumb {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--r-sm);
+    background: var(--gray-100);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+/* Quick action */
+.quick-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    background: var(--white);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.quick-action-btn:hover {
+    border-color: var(--green-200);
+    background: var(--green-50);
+    transform: translateX(2px);
+}
+
+.text-danger { color: var(--red-600) !important; }
+</style>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+(async () => {
+    const green = '#00704A';
+    const greenLight = 'rgba(0,112,74,0.12)';
+    const gold = '#C8A96E';
+    const gray = '#71717a';
+
+    // ── Gráfico 1: Ventas 7 días (línea) ────────────────────────
+    try {
+        const res1 = await fetch('@Url.Action("DatosVentas7Dias","Dashboard")');
+        const data1 = await res1.json();
+        new Chart(document.getElementById('chartVentas'), {
+            type: 'line',
+            data: {
+                labels: data1.map(d => d.label),
+                datasets: [
+                    {
+                        label: 'Ingresos (S/)',
+                        data: data1.map(d => d.total),
+                        borderColor: green,
+                        backgroundColor: greenLight,
+                        borderWidth: 2.5,
+                        pointBackgroundColor: green,
+                        pointRadius: 4,
+                        tension: 0.35,
+                        fill: true,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Pedidos',
+                        data: data1.map(d => d.cantidad),
+                        borderColor: gold,
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        pointBackgroundColor: gold,
+                        pointRadius: 3,
+                        tension: 0.35,
+                        borderDash: [5, 3],
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { labels: { font: { family: 'Inter', size: 11 }, color: '#3f3f46', usePointStyle: true, pointStyleWidth: 8 } },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ctx.datasetIndex === 0
+                                ? ` S/ ${ctx.parsed.y.toFixed(2)}`
+                                : ` ${ctx.parsed.y} pedido(s)`
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { color: '#e4e4e7' }, ticks: { color: gray, font: { size: 10 } } },
+                    y:  { position: 'left',  grid: { color: '#e4e4e7' }, ticks: { color: gray, font: { size: 10 }, callback: v => 'S/ ' + v } },
+                    y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { color: gold, font: { size: 10 }, stepSize: 1 } }
+                }
+            }
+        });
+    } catch(e) { console.warn('chartVentas error:', e); }
+
+    // ── Gráfico 2: Top productos (barras horizontales) ──────────
+    try {
+        const res2 = await fetch('@Url.Action("DatosTopProductos","Dashboard")');
+        const data2 = await res2.json();
+        new Chart(document.getElementById('chartTop'), {
+            type: 'bar',
+            data: {
+                labels: data2.map(d => d.nombre.length > 18 ? d.nombre.substring(0,16)+'…' : d.nombre),
+                datasets: [{
+                    label: 'Unidades',
+                    data: data2.map(d => d.cantidad),
+                    backgroundColor: data2.map((_, i) => i === 0 ? green : i === 1 ? '#00875a' : greenLight.replace('0.12','0.7')),
+                    borderRadius: 4,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x} unid.` } }
+                },
+                scales: {
+                    x: { grid: { color: '#e4e4e7' }, ticks: { color: gray, font: { size: 10 }, stepSize: 1 } },
+                    y: { grid: { display: false }, ticks: { color: '#27272a', font: { size: 10, weight: '500' } } }
+                }
+            }
+        });
+    } catch(e) { console.warn('chartTop error:', e); }
+})();
+</script>
+}

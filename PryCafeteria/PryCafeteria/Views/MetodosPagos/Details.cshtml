@@ -1,0 +1,42 @@
+@model PryCafeteria.Models.MetodosPago
+@{ ViewData["Title"] = "Detalles del Método de Pago"; }
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title">Detalles del Método de Pago</h1>
+        <p class="page-subtitle">Información registrada para este método de pago</p>
+    </div>
+    <a asp-action="Index" class="btn-cancel" style="width:auto;padding:0.52rem 1rem;">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver
+    </a>
+</div>
+
+<div style="max-width:640px;margin:0 auto;">
+    <div class="form-card">
+        <div class="form-card-header">
+            <div class="form-card-icon">
+                <i class="bi bi-credit-card-2-front" aria-hidden="true"></i>
+            </div>
+            <div>
+                <div class="form-card-title">Método de pago</div>
+                <div class="form-card-subtitle">Datos del método registrado</div>
+            </div>
+        </div>
+
+        <div class="info-grid">
+            <span class="info-label">Nombre</span>
+            <span class="info-value" style="font-weight:700;">@Html.DisplayFor(model => model.NombreMetodoPago)</span>
+        </div>
+
+        <div style="padding:0 24px 24px;">
+            <div class="form-actions">
+                <a asp-action="Edit" asp-route-id="@Model?.MetodoPagoId" class="btn-submit" style="text-decoration:none;">
+                    <i class="bi bi-pencil" aria-hidden="true"></i> Editar método de pago
+                </a>
+                <a asp-action="Index" class="btn-cancel">
+                    <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver al listado
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

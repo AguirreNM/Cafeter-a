@@ -1,0 +1,188 @@
+@model IEnumerable<PryCafeteria.Models.Pedido>
+@{
+    ViewData["Title"] = "Gestión de Pedidos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var filtroEstado = ViewBag.FiltroEstado as string;
+    var filtroBusqueda = ViewBag.FiltroBusqueda as string;
+    var filtroFecha = ViewBag.FiltroFecha as string;
+}
+
+<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+    <div>
+        <h1 class="page-title">Pedidos</h1>
+        <p class="page-subtitle">@Model.Count() pedido(s) @(string.IsNullOrEmpty(filtroEstado) ? "en total" : "con estado: " + filtroEstado)</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+        <a asp-controller="Pedidos" asp-action="ExportarExcel"
+           asp-route-estado="@filtroEstado"
+           asp-route-fecha="@filtroFecha"
+           class="btn-cancel" style="width:auto;padding:0.52rem 1rem;">
+            <i class="bi bi-file-earmark-excel"></i> Exportar Excel
+        </a>
+        <a asp-controller="Reportes" asp-action="Index"
+           class="btn-cancel" style="width:auto;padding:0.52rem 1rem;">
+            <i class="bi bi-bar-chart-line"></i> Reportes
+        </a>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="data-card" style="margin-bottom:16px;padding:16px 20px;">
+    <form asp-controller="Pedidos" asp-action="Index" method="get"
+          style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+
+        <div>
+            <label style="font-size:.78rem;color:#6b7280;display:block;margin-bottom:4px;">Estado</label>
+            @{
+                var estadoOpts = new[] { ("", "Todos") }.Concat(PryCafeteria.Models.EstadoPedido.Todos.Select(e => (e, e)));
+            }
+            <select name="estado" onchange="this.form.submit()"
+                    style="padding:7px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:.85rem;">
+                @foreach (var (val, label) in estadoOpts)
+                {
+                    if (filtroEstado == (val == "" ? null : val))
+                    {
+                        <option value="@val" selected>@label</option>
+                    }
+                    else
+                    {
+                        <option value="@val">@label</option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div>
+            <label style="font-size:.78rem;color:#6b7280;display:block;margin-bottom:4px;">Fecha</label>
+            <select name="fecha" onchange="this.form.submit()"
+                    style="padding:7px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:.85rem;">
+                @if (filtroFecha == null) { <option value="" selected>Todos</option> } else { <option value="">Todos</option> }
+                @if (filtroFecha == "hoy") { <option value="hoy" selected>Hoy</option> } else { <option value="hoy">Hoy</option> }
+                @if (filtroFecha == "semana") { <option value="semana" selected>Última semana</option> } else { <option value="semana">Última semana</option> }
+            </select>
+        </div>
+
+        <div style="flex:1;min-width:200px;">
+            <label style="font-size:.78rem;color:#6b7280;display:block;margin-bottom:4px;">Buscar</label>
+            <div style="display:flex;gap:6px;">
+                <input type="text" name="busqueda" value="@filtroBusqueda"
+                       placeholder="#pedido o nombre/email..."
+                       style="flex:1;padding:7px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:.85rem;" />
+                <button type="submit" class="btn btn-sm btn-success">
+                    <i class="bi bi-search"></i>
+                </button>
+                @if (!string.IsNullOrEmpty(filtroBusqueda) || !string.IsNullOrEmpty(filtroEstado) || !string.IsNullOrEmpty(filtroFecha))
+                {
+                    <a asp-controller="Pedidos" asp-action="Index"
+                       class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x"></i>
+                    </a>
+                }
+            </div>
+        </div>
+    </form>
+</div>
+
+@if (TempData["Exito"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i>@TempData["Exito"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Tabla de pedidos -->
+<div class="data-card" style="overflow-x:auto;">
+    @if (!Model.Any())
+    {
+        <div style="text-align:center;padding:40px;color:#9ca3af;">
+            <i class="bi bi-bag-x" style="font-size:2.5rem;"></i>
+            <p style="margin-top:10px;">No hay pedidos con los filtros aplicados.</p>
+        </div>
+    }
+    else
+    {
+        <table style="width:100%;border-collapse:collapse;">
+            <thead>
+                <tr style="border-bottom:2px solid #f3f4f6;">
+                    <th style="padding:10px 14px;text-align:left;font-size:.75rem;color:#6b7280;font-weight:700;text-transform:uppercase;">#</th>
+                    <th style="padding:10px 14px;text-align:left;font-size:.75rem;color:#6b7280;font-weight:700;text-transform:uppercase;">Cliente</th>
+                    <th style="padding:10px 14px;text-align:left;font-size:.75rem;color:#6b7280;font-weight:700;text-transform:uppercase;">Fecha</th>
+                    <th style="padding:10px 14px;text-align:left;font-size:.75rem;color:#6b7280;font-weight:700;text-transform:uppercase;">Total</th>
+                    <th style="padding:10px 14px;text-align:left;font-size:.75rem;color:#6b7280;font-weight:700;text-transform:uppercase;">Entrega</th>
+                    <th style="padding:10px 14px;text-align:left;font-size:.75rem;color:#6b7280;font-weight:700;text-transform:uppercase;">Estado</th>
+                    <th style="padding:10px 14px;text-align:left;font-size:.75rem;color:#6b7280;font-weight:700;text-transform:uppercase;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var pedido in Model)
+                {
+                    var (bg, color, emoji) = pedido.Estado switch
+                    {
+                        "Pendiente"  => ("#fef3c7", "#92400e", "🟡"),
+                        "EnProceso"  => ("#ede9fe", "#5b21b6", "🟣"),
+                        "Listo"      => ("#ffedd5", "#9a3412", "🟠"),
+                        "Entregado"  => ("#dcfce7", "#166534", "🟢"),
+                        "Cancelado"  => ("#fee2e2", "#991b1b", "🔴"),
+                        _            => ("#f3f4f6", "#374151", "⚪")
+                    };
+
+                    <tr style="border-bottom:1px solid #f9fafb;">
+                        <td style="padding:12px 14px;font-weight:700;color:#111827;">#@pedido.PedidoId</td>
+                        <td style="padding:12px 14px;">
+                            <p style="font-weight:600;color:#374151;margin:0;font-size:.88rem;">@pedido.Usuario.Nombre @pedido.Usuario.Apellido</p>
+                            <p style="color:#9ca3af;font-size:.78rem;margin:0;">@pedido.Usuario.Email</p>
+                        </td>
+                        <td style="padding:12px 14px;font-size:.85rem;color:#6b7280;">@pedido.FechaPedido.ToString("dd/MM HH:mm")</td>
+                        <td style="padding:12px 14px;font-weight:700;color:#1B4332;">S/. @pedido.Total.ToString("0.00")</td>
+                        <td style="padding:12px 14px;font-size:.85rem;color:#6b7280;">@pedido.TipoEntrega</td>
+                        <td style="padding:12px 14px;">
+                            <span style="background:@bg;color:@color;padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:700;white-space:nowrap;">
+                                @emoji @pedido.Estado
+                            </span>
+                        </td>
+                        <td style="padding:12px 14px;">
+                            <div style="display:flex;gap:6px;align-items:center;">
+                                <a asp-controller="Pedidos" asp-action="Detalle" asp-route-id="@pedido.PedidoId"
+                                   class="btn btn-sm btn-outline-secondary" title="Ver detalle">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+
+                                @if (pedido.Estado != "Entregado" && pedido.Estado != "Cancelado")
+                                {
+                                    <form asp-controller="Pedidos" asp-action="CambiarEstado" method="post" style="margin:0;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@pedido.PedidoId" />
+                                        @{
+                                            // Sugerir el siguiente estado lógico
+                                            var siguiente = pedido.Estado switch
+                                            {
+                                                "Pendiente"  => "EnProceso",
+                                                "EnProceso"  => "Listo",
+                                                "Listo"      => "Entregado",
+                                                _            => null
+                                            };
+                                        }
+                                        @if (siguiente != null)
+                                        {
+                                            <button type="submit" name="nuevoEstado" value="@siguiente"
+                                                    class="btn btn-sm btn-success" title="Avanzar estado">
+                                                <i class="bi bi-arrow-right-circle"></i>
+                                                @siguiente
+                                            </button>
+                                        }
+                                        <button type="submit" name="nuevoEstado" value="Cancelado"
+                                                onclick="return confirm('¿Cancelar pedido #@pedido.PedidoId?')"
+                                                class="btn btn-sm btn-outline-danger" title="Cancelar">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

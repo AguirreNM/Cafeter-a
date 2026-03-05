@@ -1,0 +1,199 @@
+@model PryCafeteria.Models.ViewModels.LoginViewModel
+
+@{
+    ViewData["Title"] = "Acceso";
+    Layout = null;
+    bool mostrarRegistro = ViewBag.MostrarRegistro == true;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - Starbucks</title>
+    <link rel="stylesheet" href="~/css/login-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+    <div class="auth-wrapper @(mostrarRegistro ? "toggled" : "")">
+        <div class="background-shape"></div>
+        <div class="secondary-shape"></div>
+
+        <!-- ===== PANEL LOGIN ===== -->
+        <div class="credentials-panel signin">
+            <h2 class="slide-element">Iniciar Sesión</h2>
+
+            <form asp-action="Login" asp-controller="Cuentas" method="post">
+
+                @if (!mostrarRegistro && ViewData.ModelState.ErrorCount > 0)
+                {
+                    <div class="error-box slide-element">
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <p><i class="fa-solid fa-circle-exclamation"></i> @error.ErrorMessage</p>
+                        }
+                    </div>
+                }
+
+                <div class="field-wrapper slide-element">
+                    <input asp-for="Email" type="email" autocomplete="email" required placeholder=" " />
+                    <label asp-for="Email">Correo electrónico</label>
+                    <i class="fa-solid fa-envelope"></i>
+                </div>
+
+                <div class="field-wrapper slide-element">
+                    <input asp-for="Password" type="password" autocomplete="current-password" required placeholder=" " />
+                    <label asp-for="Password">Contraseña</label>
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+
+                <div class="remember-row slide-element">
+                    <label class="check-label">
+                        <input asp-for="RememberMe" type="checkbox" />
+                        <span>Recordarme</span>
+                    </label>
+                    <a href="#" class="forgot-link">¿Olvidaste tu contraseña?</a>
+                </div>
+
+                <div class="field-wrapper slide-element">
+                    <button class="submit-button" type="submit">Ingresar</button>
+                </div>
+
+                <div class="switch-link slide-element">
+                    <p>¿No tienes cuenta? <br>
+                        <a href="#" class="register-trigger">Regístrate aquí</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+
+        <!-- ===== BIENVENIDA LOGIN ===== -->
+        <div class="welcome-section signin">
+            <i class="fa-solid fa-mug-hot welcome-icon slide-element"></i>
+            <h2 class="slide-element">¡BIENVENIDO DE VUELTA!</h2>
+            <p class="slide-element">Tu café favorito te espera</p>
+        </div>
+
+        <!-- ===== PANEL REGISTRO ===== -->
+        <div class="credentials-panel signup">
+            <h2 class="slide-element">Crear Cuenta</h2>
+
+            <form asp-action="Registro" asp-controller="Cuentas" method="post">
+
+                @if (mostrarRegistro && ViewBag.ErroresRegistro != null)
+                {
+                    <div class="error-box slide-element">
+                        @foreach (var error in (List<string>)ViewBag.ErroresRegistro)
+                        {
+                            <p><i class="fa-solid fa-circle-exclamation"></i> @error</p>
+                        }
+                    </div>
+                }
+
+                <div class="field-wrapper slide-element">
+                    <input type="text" name="Nombre" autocomplete="given-name"
+                           value="@ViewBag.RegistroNombre" required placeholder=" " />
+                    <label>Nombre</label>
+                    <i class="fa-solid fa-user"></i>
+                </div>
+
+                <div class="field-wrapper slide-element">
+                    <input type="text" name="Apellido" autocomplete="family-name"
+                           value="@ViewBag.RegistroApellido" required placeholder=" " />
+                    <label>Apellido</label>
+                    <i class="fa-solid fa-user"></i>
+                </div>
+
+                <div class="field-wrapper slide-element">
+                    <input type="email" name="Email" autocomplete="email"
+                           value="@ViewBag.RegistroEmail" required placeholder=" " />
+                    <label>Correo electrónico</label>
+                    <i class="fa-solid fa-envelope"></i>
+                </div>
+
+                <div class="field-wrapper slide-element">
+                    <input type="password" name="Password" autocomplete="new-password" required placeholder=" " />
+                    <label>Contraseña</label>
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+
+                <div class="field-wrapper slide-element">
+                    <input type="password" name="ConfirmPassword" autocomplete="new-password" required placeholder=" " />
+                    <label>Confirmar contraseña</label>
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+
+                <div class="field-wrapper slide-element">
+                    <button class="submit-button" type="submit">Registrarse</button>
+                </div>
+
+                <div class="switch-link slide-element">
+                    <p>¿Ya tienes cuenta? <br>
+                        <a href="#" class="login-trigger">Inicia sesión aquí</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+
+        <!-- ===== BIENVENIDA REGISTRO ===== -->
+        <div class="welcome-section signup">
+            <i class="fa-solid fa-mug-hot welcome-icon slide-element"></i>
+            <h2 class="slide-element">¡ÚNETE A NOSOTROS!</h2>
+            <p class="slide-element">Descubre tu nuevo café favorito</p>
+        </div>
+    </div>
+
+    <script src="~/js/login-script.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+
+    <script>
+        // Validación del formulario de registro
+        document.querySelector('form[action*="Registro"]').addEventListener('submit', function (e) {
+            const nombre = this.querySelector('[name="Nombre"]');
+            const apellido = this.querySelector('[name="Apellido"]');
+            const email = this.querySelector('[name="Email"]');
+            const password = this.querySelector('[name="Password"]');
+            const confirm = this.querySelector('[name="ConfirmPassword"]');
+
+            let errores = [];
+
+            if (!nombre.value.trim() || nombre.value.trim().length < 2)
+                errores.push('El nombre debe tener al menos 2 caracteres.');
+
+            if (!apellido.value.trim() || apellido.value.trim().length < 2)
+                errores.push('El apellido debe tener al menos 2 caracteres.');
+
+            const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+            if (!email.value.trim() || !emailRegex.test(email.value.trim()))
+                errores.push('Ingrese un email válido.');
+
+            if (!password.value || password.value.length < 6)
+                errores.push('La contraseña debe tener al menos 6 caracteres.');
+
+            const tieneMinuscula = /[a-z]/.test(password.value);
+            const tieneDigito = /[0-9]/.test(password.value);
+            if (password.value && (!tieneMinuscula || !tieneDigito))
+                errores.push('La contraseña debe tener al menos 1 minúscula y 1 dígito.');
+
+            if (password.value !== confirm.value)
+                errores.push('Las contraseñas no coinciden.');
+
+            if (errores.length > 0) {
+                e.preventDefault();
+                let errorBox = this.querySelector('.error-box');
+                if (!errorBox) {
+                    errorBox = document.createElement('div');
+                    errorBox.className = 'error-box slide-element';
+                    this.insertBefore(errorBox, this.firstChild);
+                }
+                errorBox.innerHTML = errores.map(err =>
+                    `<p><i class="fa-solid fa-circle-exclamation"></i> ${err}</p>`
+                ).join('');
+            }
+        });
+    </script>
+</body>
+</html>

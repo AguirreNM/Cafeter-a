@@ -1,0 +1,107 @@
+@model PryCafeteria.Models.DireccionesEntrega
+@{
+    var esEdicion = Model.DireccionId > 0;
+    ViewData["Title"] = esEdicion ? "Editar dirección" : "Nueva dirección";
+    Layout = "~/Views/Shared/_LayoutCliente.cshtml";
+}
+
+<div style="max-width:500px;margin:0 auto;">
+    <a asp-action="Index"
+       style="display:inline-flex;align-items:center;gap:6px;color:#6b7280;text-decoration:none;font-size:.88rem;margin-bottom:20px;">
+        <i class="bi bi-arrow-left"></i> Mis direcciones
+    </a>
+
+    <div style="background:#fff;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,.08);overflow:hidden;">
+        <div style="padding:20px 24px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:12px;">
+            <div style="width:40px;height:40px;border-radius:10px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;">
+                <i class="bi bi-geo-alt-fill" style="color:#1B4332;font-size:1.1rem;"></i>
+            </div>
+            <div>
+                <h1 style="font-size:1rem;font-weight:800;color:#111827;margin:0;">@ViewData["Title"]</h1>
+                <p style="font-size:.8rem;color:#6b7280;margin:0;">Tus datos se guardan de forma segura</p>
+            </div>
+        </div>
+
+        <form asp-action="@(esEdicion ? "Edit" : "Create")" method="post" style="padding:24px;">
+            @Html.AntiForgeryToken()
+            @if (esEdicion)
+            {
+                <input type="hidden" asp-for="DireccionId" />
+            }
+
+            <div asp-validation-summary="ModelOnly" class="text-danger" style="font-size:.85rem;margin-bottom:12px;"></div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+
+                <div style="grid-column:span 2;">
+                    <label asp-for="NombreDireccion" style="font-size:.82rem;font-weight:600;color:#374151;display:block;margin-bottom:5px;">
+                        Nombre de referencia *
+                    </label>
+                    <input asp-for="NombreDireccion" placeholder="Casa, Trabajo, Departamento..."
+                           style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:.88rem;box-sizing:border-box;" />
+                    <span asp-validation-for="NombreDireccion" class="text-danger" style="font-size:.78rem;"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Calle" style="font-size:.82rem;font-weight:600;color:#374151;display:block;margin-bottom:5px;">
+                        Calle / Avenida *
+                    </label>
+                    <input asp-for="Calle" placeholder="Av. Larco"
+                           style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:.88rem;box-sizing:border-box;" />
+                    <span asp-validation-for="Calle" class="text-danger" style="font-size:.78rem;"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Numero" style="font-size:.82rem;font-weight:600;color:#374151;display:block;margin-bottom:5px;">
+                        Número *
+                    </label>
+                    <input asp-for="Numero" placeholder="345, S/N..."
+                           style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:.88rem;box-sizing:border-box;" />
+                    <span asp-validation-for="Numero" class="text-danger" style="font-size:.78rem;"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Distrito" style="font-size:.82rem;font-weight:600;color:#374151;display:block;margin-bottom:5px;">
+                        Distrito *
+                    </label>
+                    <input asp-for="Distrito" placeholder="Miraflores"
+                           style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:.88rem;box-sizing:border-box;" />
+                    <span asp-validation-for="Distrito" class="text-danger" style="font-size:.78rem;"></span>
+                </div>
+
+                <div>
+                    <label asp-for="CodigoPostal" style="font-size:.82rem;font-weight:600;color:#374151;display:block;margin-bottom:5px;">
+                        Código postal *
+                    </label>
+                    <input asp-for="CodigoPostal" placeholder="15048"
+                           style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:.88rem;box-sizing:border-box;" />
+                    <span asp-validation-for="CodigoPostal" class="text-danger" style="font-size:.78rem;"></span>
+                </div>
+
+                <div style="grid-column:span 2;">
+                    <label asp-for="Referencias" style="font-size:.82rem;font-weight:600;color:#374151;display:block;margin-bottom:5px;">
+                        Referencias (opcional)
+                    </label>
+                    <textarea asp-for="Referencias" rows="2"
+                              placeholder="Frente al parque, portón azul, piso 3 departamento 301..."
+                              style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:.88rem;resize:vertical;box-sizing:border-box;"></textarea>
+                </div>
+
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:20px;">
+                <button type="submit"
+                        style="flex:1;padding:11px;background:#1B4332;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:.9rem;cursor:pointer;">
+                    <i class="bi bi-floppy me-1"></i>
+                    @(esEdicion ? "Guardar cambios" : "Guardar dirección")
+                </button>
+                <a asp-action="Index"
+                   style="flex:1;text-align:center;padding:11px;border:1px solid #d1d5db;border-radius:8px;text-decoration:none;color:#374151;font-weight:600;font-size:.9rem;">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }

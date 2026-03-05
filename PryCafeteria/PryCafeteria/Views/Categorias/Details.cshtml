@@ -1,0 +1,37 @@
+﻿@model PryCafeteria.Models.Categoria
+@{ ViewData["Title"] = "Detalle de la Categoría"; }
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title">Detalle de Categoría</h1>
+        <p class="page-subtitle">Información de la categoría seleccionada</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+        <a asp-action="Edit" asp-route-id="@Model?.CategoriaId" class="btn-cta">
+            <i class="bi bi-pencil" aria-hidden="true"></i> Editar
+        </a>
+        <a asp-action="Index" class="btn-cancel" style="width:auto;padding:0.52rem 1rem;">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver
+        </a>
+    </div>
+</div>
+
+<div style="max-width:640px;margin:0 auto;">
+    <div class="form-card">
+        <div class="form-card-header">
+            <div class="form-card-icon gold">
+                <i class="bi bi-folder2" aria-hidden="true"></i>
+            </div>
+            <div>
+                <div class="form-card-title">@Html.DisplayFor(model => model.NombreCategoria)</div>
+                <div class="form-card-subtitle">ID #@Model?.CategoriaId</div>
+            </div>
+        </div>
+        <div class="info-grid">
+            <span class="info-label">Nombre</span>
+            <span class="info-value" style="font-size:1rem;font-weight:700;">
+                <span class="badge-modern badge-categoria"><span class="dot" aria-hidden="true"></span>@Html.DisplayFor(model => model.NombreCategoria)</span>
+            </span>
+        </div>
+    </div>
+</div>

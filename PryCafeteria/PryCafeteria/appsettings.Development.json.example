@@ -1,0 +1,19 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+
+  "ConnectionStrings": {
+    // OPCIÓN A — SQL Server local con autenticación de Windows (recomendado para desarrollo):
+    "BDCAFETERIAConn": "Server=localhost\\SQLEXPRESS;Initial Catalog=BDCAFETERIA;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;"
+
+    // OPCIÓN B — SQL Server con usuario y contraseña:
+    // "BDCAFETERIAConn": "Server=localhost\\SQLEXPRESS;Initial Catalog=BDCAFETERIA;User ID=sa;Password=TuPassword;Encrypt=True;TrustServerCertificate=True;"
+
+    // OPCIÓN C — Azure SQL (reemplaza con tus datos, NUNCA subas esto al repo):
+    // "BDCAFETERIAConn": "Server=tcp:TU_SERVIDOR.database.windows.net,1433;Initial Catalog=BDCAFETERIA;User ID=TU_USUARIO;Password=TU_PASSWORD;Encrypt=True;TrustServerCertificate=False;"
+  }
+}

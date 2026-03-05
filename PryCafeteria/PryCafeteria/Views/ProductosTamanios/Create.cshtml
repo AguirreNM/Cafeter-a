@@ -1,0 +1,117 @@
+@model PryCafeteria.Models.ProductosTamanio
+
+@{
+    ViewData["Title"] = "Nueva variante";
+}
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title">Nueva variante de producto</h1>
+        <p class="page-subtitle">Define el precio y stock para una combinación producto + tamaño</p>
+    </div>
+    <a asp-action="Index" class="btn-cancel" style="width:auto;padding:0.52rem 1rem;">
+        <i class="bi bi-arrow-left"></i> Volver al listado
+    </a>
+</div>
+
+<div style="max-width:520px;margin:0 auto;">
+    <div class="form-card">
+
+        <!-- Header -->
+        <div class="form-card-header">
+            <div class="form-card-icon">
+                <i class="bi bi-diagram-3"></i>
+            </div>
+            <div>
+                <div class="form-card-title">Configurar variante</div>
+                <div class="form-card-subtitle">Selecciona el producto, tamaño y define el precio</div>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div class="form-card-body">
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+
+                <!-- Producto -->
+                <div class="field-group">
+                    <label asp-for="ProductoId" class="form-label">
+                        <i class="bi bi-cup-hot" style="color:var(--green-800);margin-right:4px;"></i>
+                        Producto
+                    </label>
+                    <select asp-for="ProductoId" class="form-select" asp-items="ViewBag.ProductoId">
+                        <option value="">— Selecciona un producto —</option>
+                    </select>
+                    <span asp-validation-for="ProductoId" class="field-error"></span>
+                </div>
+
+                <!-- Tamaño -->
+                <div class="field-group">
+                    <label asp-for="TamanioId" class="form-label">
+                        <i class="bi bi-rulers" style="color:var(--green-800);margin-right:4px;"></i>
+                        Tamaño
+                    </label>
+                    <select asp-for="TamanioId" class="form-select" asp-items="ViewBag.TamanioId">
+                        <option value="">— Selecciona un tamaño —</option>
+                    </select>
+                    <span asp-validation-for="TamanioId" class="field-error"></span>
+                </div>
+
+                <!-- Precio -->
+                <div class="field-group">
+                    <label asp-for="Precio" class="form-label">
+                        <i class="bi bi-tag" style="color:var(--green-800);margin-right:4px;"></i>
+                        Precio (S/)
+                    </label>
+                    <div class="input-prefix-wrap">
+                        <span class="input-prefix">S/</span>
+                        <input asp-for="Precio" class="form-control" placeholder="0.00" step="0.01" min="0.01" />
+                    </div>
+                    <span asp-validation-for="Precio" class="field-error"></span>
+                    <p class="field-hint">El precio debe ser mayor a S/ 0.00</p>
+                </div>
+
+                <!-- Stock -->
+                <div class="field-group">
+                    <label asp-for="Stock" class="form-label">
+                        <i class="bi bi-boxes" style="color:var(--green-800);margin-right:4px;"></i>
+                        Stock inicial
+                    </label>
+                    <input asp-for="Stock" class="form-control" placeholder="Ej. 20" min="0" type="number" />
+                    <span asp-validation-for="Stock" class="field-error"></span>
+                    <p class="field-hint">Cantidad de unidades disponibles. Puede ser 0.</p>
+                </div>
+
+                <!-- Disponible toggle -->
+                <div class="field-group">
+                    <div class="toggle-field">
+                        <div>
+                            <div class="toggle-info-title">Disponible para venta</div>
+                            <div class="toggle-info-desc">Los clientes podrán ver y ordenar este ítem</div>
+                        </div>
+                        <div class="form-check form-switch mb-0">
+                            <input asp-for="Disponible" class="form-check-input" type="checkbox" role="switch" checked />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">
+                        <i class="bi bi-floppy"></i>
+                        Guardar variante
+                    </button>
+                    <a asp-action="Index" class="btn-cancel">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

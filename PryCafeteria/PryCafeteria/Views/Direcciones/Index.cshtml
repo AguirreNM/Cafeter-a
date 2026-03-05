@@ -1,0 +1,65 @@
+@model IEnumerable<PryCafeteria.Models.DireccionesEntrega>
+@{
+    ViewData["Title"] = "Mis direcciones";
+    Layout = "~/Views/Shared/_LayoutCliente.cshtml";
+}
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+    <h1 style="font-size:1.4rem;font-weight:800;color:#111827;margin:0;">
+        <i class="bi bi-geo-alt me-2"></i>Mis direcciones
+    </h1>
+    <a asp-action="Create"
+       style="padding:9px 20px;background:#1B4332;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:.88rem;">
+        <i class="bi bi-plus-lg me-1"></i>Nueva dirección
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div style="text-align:center;padding:70px 20px;background:#fff;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+        <i class="bi bi-geo-alt" style="font-size:3rem;color:#d1d5db;"></i>
+        <h3 style="margin-top:16px;color:#374151;font-weight:700;">Sin direcciones guardadas</h3>
+        <p style="color:#6b7280;margin-bottom:20px;">Agrega una dirección para facilitar tus pedidos de delivery.</p>
+        <a asp-action="Create"
+           style="padding:10px 28px;background:#1B4332;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">
+            Agregar dirección
+        </a>
+    </div>
+}
+else
+{
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+        @foreach (var dir in Model)
+        {
+            <div style="background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:20px;position:relative;">
+                <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
+                    <div style="width:40px;height:40px;border-radius:10px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="bi bi-geo-alt-fill" style="color:#1B4332;font-size:1.1rem;"></i>
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                        <p style="font-weight:700;color:#111827;margin:0 0 2px;font-size:.95rem;">@dir.NombreDireccion</p>
+                        <p style="color:#6b7280;font-size:.83rem;margin:0;">@dir.Calle @dir.Numero</p>
+                        <p style="color:#6b7280;font-size:.83rem;margin:0;">@dir.Distrito — @dir.CodigoPostal</p>
+                        @if (!string.IsNullOrEmpty(dir.Referencias))
+                        {
+                            <p style="color:#9ca3af;font-size:.78rem;margin:4px 0 0;font-style:italic;">@dir.Referencias</p>
+                        }
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <a asp-action="Edit" asp-route-id="@dir.DireccionId"
+                       style="flex:1;text-align:center;padding:7px;border:1px solid #d1d5db;border-radius:7px;text-decoration:none;color:#374151;font-size:.82rem;font-weight:600;">
+                        <i class="bi bi-pencil me-1"></i>Editar
+                    </a>
+                    <form asp-action="Eliminar" asp-route-id="@dir.DireccionId" method="post" style="flex:1;margin:0;">
+                        <button type="submit"
+                                onclick="return confirm('¿Eliminar esta dirección?')"
+                                style="width:100%;padding:7px;border:1px solid #fca5a5;border-radius:7px;background:none;color:#ef4444;font-size:.82rem;font-weight:600;cursor:pointer;">
+                            <i class="bi bi-trash me-1"></i>Eliminar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+}

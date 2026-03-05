@@ -1,0 +1,48 @@
+﻿@model PryCafeteria.Models.Tamanio
+@{ ViewData["Title"] = "Editar Tamaño"; }
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title">Editar Tamaño</h1>
+        <p class="page-subtitle">Modifica el nombre del tamaño</p>
+    </div>
+    <a asp-action="Index" class="btn-cancel" style="width:auto;padding:0.52rem 1rem;">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver
+    </a>
+</div>
+
+<div style="max-width:480px;margin:0 auto;">
+    <div class="form-card">
+        <div class="form-card-header">
+            <div class="form-card-icon gold">
+                <i class="bi bi-rulers" aria-hidden="true"></i>
+            </div>
+            <div>
+                <div class="form-card-title">Editar tamaño</div>
+                <div class="form-card-subtitle">Los cambios aplican a todas las variantes asociadas</div>
+            </div>
+        </div>
+        <div class="form-card-body">
+            <form asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+                <input type="hidden" asp-for="TamanioId" />
+                <div class="field-group">
+                    <label asp-for="NombreTamanio" class="form-label">
+                        <i class="bi bi-rulers" style="color:var(--green-800);margin-right:5px;" aria-hidden="true"></i>Nombre del Tamaño
+                    </label>
+                    <input asp-for="NombreTamanio" class="form-control" placeholder="Ej: Tall, Grande, Venti…" />
+                    <span asp-validation-for="NombreTamanio" class="field-error"></span>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">
+                        <i class="bi bi-floppy" aria-hidden="true"></i> Guardar Cambios
+                    </button>
+                    <a asp-action="Index" class="btn-cancel">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }

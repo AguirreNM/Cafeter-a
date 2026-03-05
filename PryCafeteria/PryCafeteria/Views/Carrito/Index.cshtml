@@ -1,0 +1,228 @@
+@model PryCafeteria.Models.ViewModels.CarritoIndexViewModel
+@{
+    ViewData["Title"] = "Mi carrito";
+    Layout = "~/Views/Shared/_LayoutCliente.cshtml";
+}
+
+<h1 style="font-size:1.4rem;font-weight:800;color:#111827;margin-bottom:20px;">
+    <i class="bi bi-cart3 me-2"></i>Mi carrito
+</h1>
+
+@if (!Model.Carrito.Items.Any())
+{
+    <div style="text-align:center;padding:80px 20px;background:#fff;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+        <i class="bi bi-cart-x" style="font-size:3.5rem;color:#d1d5db;"></i>
+        <h3 style="margin-top:16px;color:#374151;font-weight:700;">Tu carrito está vacío</h3>
+        <p style="color:#6b7280;margin-bottom:24px;">Explora nuestro menú y agrega algo delicioso.</p>
+        <a asp-controller="Catalogo" asp-action="Index"
+           style="padding:10px 28px;background:#1B4332;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">
+            Ver menú
+        </a>
+    </div>
+}
+else
+{
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start;">
+
+        <!-- ══ LISTA DE ÍTEMS ══ -->
+        <div style="background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);overflow:hidden;">
+
+            <!-- Header -->
+            <div style="padding:16px 20px;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-weight:700;color:#374151;">@Model.Carrito.Items.Count producto(s)</span>
+                <form asp-controller="Carrito" asp-action="Vaciar" method="post">
+                    <button type="submit" onclick="return confirm('¿Vaciar todo el carrito?')"
+                            style="background:none;border:none;color:#ef4444;font-size:.83rem;cursor:pointer;">
+                        <i class="bi bi-trash me-1"></i>Vaciar carrito
+                    </button>
+                </form>
+            </div>
+
+            <!-- Items -->
+            <div id="lista-items">
+                @foreach (var item in Model.Carrito.Items)
+                {
+                    <div id="item-@item.ProductoTamanioId"
+                         style="display:flex;gap:16px;padding:16px 20px;border-bottom:1px solid #f9fafb;align-items:center;">
+                        <!-- Imagen -->
+                        <img src="@(item.Imagen ?? "/images/placeholder-producto.png")"
+                             alt="@item.NombreProducto"
+                             style="width:70px;height:70px;object-fit:cover;border-radius:10px;flex-shrink:0;"
+                             onerror="this.src='/images/placeholder-producto.png'" />
+                        <!-- Info -->
+                        <div style="flex:1;min-width:0;">
+                            <p style="font-weight:700;color:#111827;margin:0 0 2px;font-size:.95rem;">@item.NombreProducto</p>
+                            <p style="color:#6b7280;font-size:.82rem;margin:0 0 8px;">@item.NombreTamanio • S/. @item.PrecioUnitario.ToString("0.00") c/u</p>
+                            <!-- Selector de cantidad -->
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <button onclick="cambiarCantidadItem(@item.ProductoTamanioId, -1)"
+                                        style="width:28px;height:28px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;font-size:.9rem;">−</button>
+                                <span id="cant-@item.ProductoTamanioId" style="font-weight:700;min-width:24px;text-align:center;">@item.Cantidad</span>
+                                <button onclick="cambiarCantidadItem(@item.ProductoTamanioId, 1)"
+                                        style="width:28px;height:28px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;font-size:.9rem;">+</button>
+                            </div>
+                        </div>
+                        <!-- Subtotal + eliminar -->
+                        <div style="text-align:right;flex-shrink:0;">
+                            <p id="sub-@item.ProductoTamanioId" style="font-weight:700;color:#1B4332;font-size:1rem;margin:0 0 8px;">
+                                S/. @item.Subtotal.ToString("0.00")
+                            </p>
+                            <button onclick="eliminarItem(@item.ProductoTamanioId)"
+                                    style="background:none;border:none;color:#9ca3af;cursor:pointer;font-size:.85rem;">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- ══ RESUMEN ══ -->
+        <div style="background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:20px;position:sticky;top:80px;">
+            <h3 style="font-size:1rem;font-weight:700;color:#374151;margin-bottom:16px;">Resumen del pedido</h3>
+
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:.9rem;color:#6b7280;">
+                <span>Subtotal</span>
+                <span id="subtotal-valor">S/. @Model.Carrito.Subtotal.ToString("0.00")</span>
+            </div>
+
+            @if (Model.Carrito.Descuento > 0)
+            {
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:.9rem;color:#16a34a;">
+                    <span>Descuento (@Model.Carrito.CuponCodigo)</span>
+                    <span id="descuento-valor">−S/. @Model.Carrito.Descuento.ToString("0.00")</span>
+                </div>
+            }
+            else
+            {
+                <div id="descuento-fila" style="display:none;justify-content:space-between;margin-bottom:8px;font-size:.9rem;color:#16a34a;">
+                    <span id="descuento-label">Descuento</span>
+                    <span id="descuento-valor"></span>
+                </div>
+            }
+
+            <hr style="border-color:#f3f4f6;margin:12px 0;" />
+            <div style="display:flex;justify-content:space-between;font-weight:800;font-size:1.1rem;color:#111827;margin-bottom:20px;">
+                <span>Total</span>
+                <span id="total-valor">S/. @Model.Carrito.Total.ToString("0.00")</span>
+            </div>
+
+            <!-- Cupón -->
+            @if (string.IsNullOrEmpty(Model.Carrito.CuponCodigo))
+            {
+                <div style="margin-bottom:16px;">
+                    <label style="font-size:.82rem;color:#6b7280;display:block;margin-bottom:6px;">¿Tienes un cupón?</label>
+                    <div style="display:flex;gap:6px;">
+                        <input type="text" id="cupon-input" placeholder="Código de cupón"
+                               style="flex:1;padding:7px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:.85rem;" />
+                        <button onclick="aplicarCupon()"
+                                style="padding:7px 12px;background:#1B4332;color:#fff;border:none;border-radius:7px;font-size:.82rem;cursor:pointer;font-weight:600;">
+                            Aplicar
+                        </button>
+                    </div>
+                    <p id="msg-cupon" style="font-size:.8rem;margin-top:6px;"></p>
+                </div>
+            }
+            else
+            {
+                <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;">
+                    <span style="font-size:.85rem;color:#16a34a;font-weight:600;"><i class="bi bi-tag me-1"></i>@Model.Carrito.CuponCodigo</span>
+                    <button onclick="quitarCupon()" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:.8rem;">Quitar</button>
+                </div>
+            }
+
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a asp-controller="Pedidos" asp-action="Checkout"
+                   style="display:block;text-align:center;padding:12px;background:#1B4332;color:#fff;border-radius:10px;text-decoration:none;font-weight:700;font-size:.95rem;">
+                    Proceder al pago →
+                </a>
+            }
+            else
+            {
+                <a asp-controller="Cuentas" asp-action="Login" asp-route-returnUrl="/Pedidos/Checkout"
+                   style="display:block;text-align:center;padding:12px;background:#1B4332;color:#fff;border-radius:10px;text-decoration:none;font-weight:700;font-size:.95rem;">
+                    Inicia sesión para pagar →
+                </a>
+            }
+
+            <a asp-controller="Catalogo" asp-action="Index"
+               style="display:block;text-align:center;margin-top:10px;font-size:.85rem;color:#6b7280;text-decoration:none;">
+                ← Seguir comprando
+            </a>
+        </div>
+    </div>
+}
+
+@section Scripts {
+<script>
+var token = '@Html.AntiForgeryToken()'.match(/value="([^"]+)"/)?.[1] ?? '';
+
+function postJson(url, data) {
+    var body = '__RequestVerificationToken=' + encodeURIComponent(token);
+    for (var k in data) body += '&' + k + '=' + encodeURIComponent(data[k]);
+    return fetch(url, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body }).then(r => r.json());
+}
+
+function cambiarCantidadItem(ptId, delta) {
+    var cantEl = document.getElementById('cant-' + ptId);
+    var nuevaCant = parseInt(cantEl.textContent) + delta;
+    if (nuevaCant < 1) { if (!confirm('¿Eliminar este producto del carrito?')) return; eliminarItem(ptId); return; }
+
+    postJson('/Carrito/ActualizarCantidad', { productoTamanioId: ptId, cantidad: nuevaCant })
+    .then(data => {
+        if (data.ok) {
+            cantEl.textContent = data.cantidad;
+            document.getElementById('sub-' + ptId).textContent = 'S/. ' + data.subtotalItem.toFixed(2);
+            actualizarTotalesUI(data);
+            if (data.advertencia) alert(data.advertencia);
+        }
+    });
+}
+
+function eliminarItem(ptId) {
+    postJson('/Carrito/Eliminar', { productoTamanioId: ptId })
+    .then(data => {
+        if (data.ok) {
+            var el = document.getElementById('item-' + ptId);
+            el.style.opacity = '0'; el.style.transition = 'opacity .3s';
+            setTimeout(() => {
+                el.remove();
+                actualizarTotalesUI(data);
+                actualizarBadgeCarrito(data.totalItems);
+                if (data.carritoVacio) location.reload();
+            }, 300);
+        }
+    });
+}
+
+function actualizarTotalesUI(data) {
+    document.getElementById('subtotal-valor').textContent = 'S/. ' + data.subtotalCarrito.toFixed(2);
+    document.getElementById('total-valor').textContent = 'S/. ' + data.total.toFixed(2);
+    actualizarBadgeCarrito(data.totalItems);
+}
+
+function aplicarCupon() {
+    var codigo = document.getElementById('cupon-input').value;
+    postJson('/Carrito/AplicarCupon', { codigoCupon: codigo })
+    .then(data => {
+        var msg = document.getElementById('msg-cupon');
+        if (data.ok) {
+            msg.innerHTML = '<span style="color:#16a34a">' + data.mensaje + '</span>';
+            document.getElementById('total-valor').textContent = 'S/. ' + data.total.toFixed(2);
+            // Mostrar fila descuento
+            var fila = document.getElementById('descuento-fila');
+            if (fila) { fila.style.display='flex'; document.getElementById('descuento-label').textContent='Descuento (' + data.cuponCodigo + ')'; document.getElementById('descuento-valor').textContent='−S/. ' + data.descuento.toFixed(2); }
+            setTimeout(() => location.reload(), 1200);
+        } else {
+            msg.innerHTML = '<span style="color:#ef4444">' + data.mensaje + '</span>';
+        }
+    });
+}
+
+function quitarCupon() {
+    postJson('/Carrito/QuitarCupon', {})
+    .then(data => { if (data.ok) location.reload(); });
+}
+</script>
+}

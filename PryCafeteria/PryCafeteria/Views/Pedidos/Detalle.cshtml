@@ -1,0 +1,177 @@
+@model PryCafeteria.Models.Pedido
+@{
+    ViewData["Title"] = $"Pedido #{Model.PedidoId}";
+    var esAdmin = User.IsInRole("Admin");
+    Layout = esAdmin ? "~/Views/Shared/_Layout.cshtml" : "~/Views/Shared/_LayoutCliente.cshtml";
+
+    var pasos = new[] { "Pendiente", "EnProceso", "Listo", "Entregado" };
+    var estadosLabels = new Dictionary<string, string>
+    {
+        ["Pendiente"]  = "Pendiente",
+        ["EnProceso"]  = "En preparación",
+        ["Listo"]      = "Listo",
+        ["Entregado"]  = "Entregado"
+    };
+    var currentIdx = Array.IndexOf(pasos, Model.Estado);
+
+    var (bg, color, emoji) = Model.Estado switch
+    {
+        "Pendiente"  => ("#fef3c7", "#92400e", "🟡"),
+        "EnProceso"  => ("#ede9fe", "#5b21b6", "🟣"),
+        "Listo"      => ("#ffedd5", "#9a3412", "🟠"),
+        "Entregado"  => ("#dcfce7", "#166534", "🟢"),
+        "Cancelado"  => ("#fee2e2", "#991b1b", "🔴"),
+        _            => ("#f3f4f6", "#374151", "⚪")
+    };
+}
+
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+    @if (esAdmin)
+    {
+        <a asp-controller="Pedidos" asp-action="Index" style="color:#6b7280;text-decoration:none;font-size:.88rem;">
+            <i class="bi bi-arrow-left me-1"></i>Volver a pedidos
+        </a>
+    }
+    else
+    {
+        <a asp-controller="Pedidos" asp-action="MisPedidos" style="color:#6b7280;text-decoration:none;font-size:.88rem;">
+            <i class="bi bi-arrow-left me-1"></i>Mis pedidos
+        </a>
+    }
+    <h1 style="font-size:1.3rem;font-weight:800;color:#111827;margin:0;">Pedido #@Model.PedidoId</h1>
+    <span style="background:@bg;color:@color;padding:4px 14px;border-radius:20px;font-size:.82rem;font-weight:700;">
+        @emoji @Model.Estado
+    </span>
+</div>
+
+<div style="max-width:760px;">
+
+    <!-- Timeline -->
+    @if (Model.Estado != "Cancelado")
+    {
+        <div style="background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:20px;margin-bottom:16px;">
+            <div style="display:flex;align-items:center;gap:0;">
+                @for (int i = 0; i < pasos.Length; i++)
+                {
+                    var done = i <= currentIdx;
+                    var curr = i == currentIdx;
+                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
+                        <div style="width:32px;height:32px;border-radius:50%;background:@(done ? "#1B4332" : "#e5e7eb");display:flex;align-items:center;justify-content:center;@(curr ? "box-shadow:0 0 0 4px #bbf7d0;" : "")">
+                            @if (done) { <i class="bi bi-check" style="color:#fff;font-size:.85rem;"></i> }
+                        </div>
+                        <span style="font-size:.72rem;color:@(curr ? "#1B4332" : "#9ca3af");font-weight:@(curr ? "700" : "400");text-align:center;">
+                            @(estadosLabels.ContainsKey(pasos[i]) ? estadosLabels[pasos[i]] : pasos[i])
+                        </span>
+                    </div>
+                    @if (i < pasos.Length - 1)
+                    {
+                        <div style="flex:1;height:2px;background:@(i < currentIdx ? "#1B4332" : "#e5e7eb");margin-bottom:24px;"></div>
+                    }
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Cambiar estado (solo admin) -->
+    @if (esAdmin && Model.Estado != "Entregado" && Model.Estado != "Cancelado")
+    {
+        <div style="background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:16px 20px;margin-bottom:16px;">
+            <h4 style="font-size:.88rem;font-weight:700;color:#374151;margin-bottom:10px;">Cambiar estado</h4>
+            <form asp-controller="Pedidos" asp-action="CambiarEstado" method="post" style="display:flex;gap:8px;flex-wrap:wrap;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.PedidoId" />
+                @foreach (var est in PryCafeteria.Models.EstadoPedido.Todos
+                    .Where(e => e != Model.Estado))
+                {
+                    <button type="submit" name="nuevoEstado" value="@est"
+                            style="padding:6px 16px;border:1px solid #d1d5db;border-radius:7px;font-size:.83rem;background:#fff;cursor:pointer;font-weight:600;@(est == "Cancelado" ? "color:#ef4444;border-color:#fca5a5;" : "color:#374151;")">
+                        → @est
+                    </button>
+                }
+            </form>
+        </div>
+    }
+
+    <!-- Productos -->
+    <div style="background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:20px;margin-bottom:16px;">
+        <h3 style="font-size:.95rem;font-weight:700;color:#374151;margin-bottom:14px;">Productos</h3>
+        @foreach (var det in Model.DetallePedidos)
+        {
+            <div style="display:flex;align-items:center;gap:14px;padding-bottom:12px;border-bottom:1px solid #f9fafb;margin-bottom:12px;">
+                <img src="@(det.ProductoTamanio.Producto?.Imagen ?? "/images/placeholder-producto.png")"
+                     style="width:52px;height:52px;object-fit:cover;border-radius:8px;"
+                     onerror="this.src='/images/placeholder-producto.png'" />
+                <div style="flex:1;">
+                    <p style="font-weight:700;color:#111827;margin:0 0 2px;font-size:.9rem;">
+                        @(det.NombreProductoSnapshot ?? det.ProductoTamanio.Producto?.NombreProducto ?? "Producto")
+                    </p>
+                    <p style="color:#6b7280;font-size:.8rem;margin:0;">
+                        @(det.NombreTamanioSnapshot ?? det.ProductoTamanio.Tamanio?.NombreTamanio ?? "")
+                        — S/. @det.PrecioUnitario.ToString("0.00") c/u
+                    </p>
+                </div>
+                <div style="text-align:right;">
+                    <p style="font-size:.8rem;color:#6b7280;margin:0;">×@det.Cantidad</p>
+                    <p style="font-weight:700;color:#1B4332;margin:0;">S/. @((det.Cantidad * det.PrecioUnitario).ToString("0.00"))</p>
+                </div>
+            </div>
+        }
+        @if (Model.Descuento > 0)
+        {
+            <div style="display:flex;justify-content:space-between;font-size:.88rem;color:#16a34a;margin-bottom:6px;">
+                <span>Descuento</span><span>−S/. @Model.Descuento.ToString("0.00")</span>
+            </div>
+        }
+        <div style="display:flex;justify-content:space-between;font-weight:800;font-size:1rem;color:#111827;margin-top:6px;">
+            <span>Total</span><span>S/. @Model.Total.ToString("0.00")</span>
+        </div>
+    </div>
+
+    <!-- Info adicional -->
+    <div style="background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:20px;margin-bottom:16px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;font-size:.85rem;color:#374151;">
+            <div>
+                <p style="color:#9ca3af;font-size:.75rem;margin-bottom:3px;">FECHA</p>
+                <p style="font-weight:600;margin:0;">@Model.FechaPedido.ToString("dd/MM/yyyy HH:mm")</p>
+            </div>
+            <div>
+                <p style="color:#9ca3af;font-size:.75rem;margin-bottom:3px;">PAGO</p>
+                <p style="font-weight:600;margin:0;">@Model.MetodoPago.NombreMetodoPago</p>
+            </div>
+            <div>
+                <p style="color:#9ca3af;font-size:.75rem;margin-bottom:3px;">ENTREGA</p>
+                <p style="font-weight:600;margin:0;">@Model.TipoEntrega</p>
+            </div>
+            @if (esAdmin && Model.Usuario != null)
+            {
+                <div>
+                    <p style="color:#9ca3af;font-size:.75rem;margin-bottom:3px;">CLIENTE</p>
+                    <p style="font-weight:600;margin:0;">@Model.Usuario.Nombre @Model.Usuario.Apellido</p>
+                    <p style="color:#6b7280;margin:2px 0 0;font-size:.8rem;">@Model.Usuario.Email</p>
+                </div>
+            }
+            @if (Model.Direccion != null)
+            {
+                <div style="grid-column:span 2;">
+                    <p style="color:#9ca3af;font-size:.75rem;margin-bottom:3px;">DIRECCIÓN</p>
+                    <p style="font-weight:600;margin:0;">@Model.Direccion.Calle @Model.Direccion.Numero, @Model.Direccion.Distrito</p>
+                    @if (!string.IsNullOrEmpty(Model.Direccion.Referencias))
+                    {
+                        <p style="color:#6b7280;font-size:.8rem;margin:2px 0 0;">@Model.Direccion.Referencias</p>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Cancelar (cliente, solo si pendiente) -->
+    @if (!esAdmin && Model.Estado == "Pendiente")
+    {
+        <form asp-controller="Pedidos" asp-action="Cancelar" asp-route-id="@Model.PedidoId" method="post" style="margin-top:8px;">
+            <button type="submit" onclick="return confirm('¿Estás seguro de cancelar el pedido?')"
+                    style="padding:10px 24px;border:1px solid #fca5a5;border-radius:8px;color:#ef4444;background:none;cursor:pointer;font-weight:600;">
+                <i class="bi bi-x-circle me-1"></i>Cancelar pedido
+            </button>
+        </form>
+    }
+</div>

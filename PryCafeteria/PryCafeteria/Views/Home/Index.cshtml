@@ -1,0 +1,301 @@
+@{
+    ViewData["Title"] = "Bienvenido";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cafetería Starbucks</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --green:    #1B4332;
+            --green-md: #2d6a4f;
+            --gold:     #C8A96E;
+            --white:    #fff;
+            --gray:     #f9fafb;
+        }
+
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--white); color: #111827; overflow-x: hidden; }
+
+        /* ── NAV ── */
+        .top-nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 40px; height: 64px;
+            background: rgba(27, 67, 50, 0.96);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 1px 12px rgba(0,0,0,.3);
+        }
+        .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #fff; font-weight: 800; font-size: 1.15rem; }
+        .nav-logo img { width: 40px; height: 40px; border-radius: 50%; }
+        .nav-links { display: flex; align-items: center; gap: 8px; }
+        .nav-links a {
+            color: rgba(255,255,255,.85); text-decoration: none;
+            padding: 8px 18px; border-radius: 8px; font-size: .9rem; font-weight: 500;
+            transition: background .15s;
+        }
+        .nav-links a:hover { background: rgba(255,255,255,.12); color: #fff; }
+        .btn-primary-nav {
+            background: var(--gold) !important; color: var(--green) !important;
+            font-weight: 700 !important; border-radius: 8px !important;
+        }
+        .btn-primary-nav:hover { background: #d4b87a !important; }
+
+        /* ── HERO ── */
+        .hero {
+            min-height: 100vh;
+            background:
+                linear-gradient(135deg, rgba(27,67,50,0.92) 0%, rgba(27,67,50,0.65) 60%, transparent 100%),
+                url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1600&q=80') center/cover no-repeat;
+            display: flex; align-items: center; padding: 0 40px;
+        }
+        .hero-content { max-width: 580px; padding-top: 64px; }
+        .hero-eyebrow {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(200,169,110,.2); border: 1px solid rgba(200,169,110,.4);
+            color: var(--gold); padding: 5px 14px; border-radius: 20px;
+            font-size: .8rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+        .hero-title {
+            font-size: clamp(2.4rem, 5vw, 3.8rem);
+            font-weight: 900; color: #fff;
+            line-height: 1.1; letter-spacing: -.02em;
+            margin-bottom: 18px;
+        }
+        .hero-title span { color: var(--gold); }
+        .hero-desc { color: rgba(255,255,255,.75); font-size: 1.05rem; line-height: 1.7; margin-bottom: 32px; }
+        .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+        .btn-hero-primary {
+            padding: 14px 32px; background: var(--gold); color: var(--green);
+            border: none; border-radius: 10px; font-weight: 800; font-size: 1rem;
+            text-decoration: none; cursor: pointer; transition: transform .15s, box-shadow .15s;
+        }
+        .btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(200,169,110,.4); color: var(--green); }
+        .btn-hero-secondary {
+            padding: 14px 32px; background: transparent; color: #fff;
+            border: 2px solid rgba(255,255,255,.5); border-radius: 10px;
+            font-weight: 600; font-size: 1rem; text-decoration: none; transition: border-color .15s;
+        }
+        .btn-hero-secondary:hover { border-color: #fff; color: #fff; }
+
+        /* ── STATS BAR ── */
+        .stats-bar {
+            background: var(--green); padding: 24px 40px;
+            display: flex; justify-content: center; gap: 60px; flex-wrap: wrap;
+        }
+        .stat-item { text-align: center; }
+        .stat-number { font-size: 2rem; font-weight: 900; color: var(--gold); }
+        .stat-label { font-size: .78rem; color: rgba(255,255,255,.65); font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
+
+        /* ── FEATURES ── */
+        .section { padding: 80px 40px; max-width: 1200px; margin: 0 auto; }
+        .section-eyebrow { color: var(--green); font-weight: 700; font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; }
+        .section-title { font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 900; color: #111827; letter-spacing: -.03em; margin-bottom: 12px; }
+        .section-sub { color: #6b7280; font-size: 1rem; margin-bottom: 48px; max-width: 520px; }
+
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+        .feature-card {
+            background: #fff; border: 1px solid #e5e7eb; border-radius: 16px;
+            padding: 28px 24px; transition: transform .2s, box-shadow .2s;
+            position: relative; overflow: hidden;
+        }
+        .feature-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--green), var(--gold));
+            transform: scaleX(0); transform-origin: left; transition: transform .25s;
+        }
+        .feature-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.1); }
+        .feature-card:hover::before { transform: scaleX(1); }
+        .feature-icon {
+            width: 48px; height: 48px; border-radius: 12px; display: flex;
+            align-items: center; justify-content: center; font-size: 1.3rem; margin-bottom: 16px;
+        }
+        .feature-title { font-weight: 700; color: #111827; font-size: .95rem; margin-bottom: 6px; }
+        .feature-desc { font-size: .85rem; color: #6b7280; line-height: 1.5; }
+
+        /* ── CTA BAND ── */
+        .cta-band {
+            background: linear-gradient(135deg, var(--green), var(--green-md));
+            padding: 64px 40px; text-align: center;
+        }
+        .cta-band h2 { font-size: clamp(1.8rem, 3vw, 2.4rem); font-weight: 900; color: #fff; margin-bottom: 12px; }
+        .cta-band p { color: rgba(255,255,255,.75); font-size: 1rem; margin-bottom: 28px; }
+        .btn-cta-gold {
+            padding: 14px 40px; background: var(--gold); color: var(--green);
+            border: none; border-radius: 10px; font-weight: 800; font-size: 1rem;
+            text-decoration: none; transition: transform .15s;
+            display: inline-block;
+        }
+        .btn-cta-gold:hover { transform: translateY(-2px); color: var(--green); }
+
+        /* ── FOOTER ── */
+        footer {
+            background: #111827; padding: 32px 40px;
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 12px;
+        }
+        footer p { color: rgba(255,255,255,.4); font-size: .82rem; }
+        footer a { color: rgba(255,255,255,.5); text-decoration: none; font-size: .82rem; }
+        footer a:hover { color: #fff; }
+
+        @@media (max-width: 640px) {
+            .top-nav { padding: 0 20px; }
+            .hero { padding: 0 20px; }
+            .stats-bar { gap: 30px; padding: 20px; }
+            .section { padding: 50px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="top-nav">
+    <a class="nav-logo" asp-controller="Home" asp-action="Index">
+        <img src="~/images/starbucks_logo.png" alt="Starbucks" />
+        Cafetería
+    </a>
+    <div class="nav-links">
+        <a asp-controller="Cuentas" asp-action="Login">Iniciar sesión</a>
+        <a asp-controller="Cuentas" asp-action="Registro" class="btn-primary-nav">Crear cuenta</a>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-eyebrow">
+            <i class="bi bi-stars"></i> Experiencia premium
+        </div>
+        <h1 class="hero-title">
+            Tu café favorito,<br>
+            <span>cuando quieras</span>
+        </h1>
+        <p class="hero-desc">
+            Ordena desde nuestra plataforma y recibe tu pedido en minutos.
+            Café de especialidad, bebidas frías y más — personalizadas a tu gusto.
+        </p>
+        <div class="hero-btns">
+            <a asp-controller="Cuentas" asp-action="Registro" class="btn-hero-primary">
+                <i class="bi bi-person-plus me-2"></i>Comenzar ahora
+            </a>
+            <a asp-controller="Cuentas" asp-action="Login" class="btn-hero-secondary">
+                Ya tengo cuenta
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+    <div class="stat-item">
+        <div class="stat-number">100+</div>
+        <div class="stat-label">Bebidas disponibles</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-number">5 min</div>
+        <div class="stat-label">Tiempo promedio</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-number">4.9★</div>
+        <div class="stat-label">Calificación</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-number">24/7</div>
+        <div class="stat-label">Soporte</div>
+    </div>
+</div>
+
+<!-- FEATURES -->
+<div style="background:#f9fafb;">
+    <div class="section">
+        <p class="section-eyebrow">¿Por qué elegirnos?</p>
+        <h2 class="section-title">Todo lo que necesitas<br>en un solo lugar</h2>
+        <p class="section-sub">Desde ordenar hasta recibir tu bebida, diseñamos cada paso para que sea simple y delicioso.</p>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon" style="background:#f0fdf4;">
+                    <i class="bi bi-phone" style="color:#1B4332;"></i>
+                </div>
+                <div class="feature-title">Pedido en segundos</div>
+                <div class="feature-desc">Navega nuestro menú, elige tu bebida, personaliza el tamaño y confirma. Así de rápido.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background:#fef9ee;">
+                    <i class="bi bi-ticket-perforated" style="color:#C8A96E;"></i>
+                </div>
+                <div class="feature-title">Cupones y descuentos</div>
+                <div class="feature-desc">Aprovecha promociones exclusivas con cupones de descuento aplicables directamente en tu carrito.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background:#eff6ff;">
+                    <i class="bi bi-geo-alt" style="color:#2563eb;"></i>
+                </div>
+                <div class="feature-title">Delivery o recojo</div>
+                <div class="feature-desc">Elige entre recoger en tienda o recibir tu pedido directamente en tu puerta con delivery.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background:#fff0f0;">
+                    <i class="bi bi-clock-history" style="color:#dc2626;"></i>
+                </div>
+                <div class="feature-title">Seguimiento en tiempo real</div>
+                <div class="feature-desc">Sigue el estado de tu pedido en cada etapa: pendiente, en preparación, listo y entregado.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- STEPS -->
+<div class="section">
+    <p class="section-eyebrow">Cómo funciona</p>
+    <h2 class="section-title">3 simples pasos</h2>
+    <p class="section-sub">Pedir tu café favorito nunca fue tan fácil.</p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:32px;position:relative;">
+        @foreach (var (num, icon, title, desc) in new[]
+        {
+            ("01", "bi-person-check", "Crea tu cuenta",      "Regístrate gratis en segundos con tu correo y contraseña."),
+            ("02", "bi-bag-plus",     "Arma tu carrito",     "Explora el menú, elige tu bebida y el tamaño que prefieras."),
+            ("03", "bi-check-circle", "Confirma y disfruta", "Paga, elige recojo o delivery, y espera tu café favorito."),
+        })
+        {
+            <div style="text-align:center;padding:24px;">
+                <div style="width:64px;height:64px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin:0 auto 16px;box-shadow:0 4px 16px rgba(27,67,50,.3);">
+                    <i class="bi @icon"></i>
+                </div>
+                <div style="font-size:3rem;font-weight:900;color:#f3f4f6;position:absolute;margin-top:-72px;margin-left:-8px;z-index:-1;font-family:serif;">@num</div>
+                <h3 style="font-weight:700;font-size:1rem;color:#111827;margin-bottom:8px;">@title</h3>
+                <p style="font-size:.88rem;color:#6b7280;line-height:1.6;">@desc</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-band">
+    <h2>¿Listo para tu primer pedido?</h2>
+    <p>Únete a miles de clientes que disfrutan de su café favorito con nuestra plataforma.</p>
+    <a asp-controller="Cuentas" asp-action="Registro" class="btn-cta-gold">
+        <i class="bi bi-arrow-right-circle me-2"></i>Crear mi cuenta gratis
+    </a>
+</div>
+
+<!-- FOOTER -->
+<footer>
+    <p>&copy; 2026 Cafetería Starbucks. Todos los derechos reservados.</p>
+    <div style="display:flex;gap:20px;">
+        <a asp-controller="Cuentas" asp-action="Login">Iniciar sesión</a>
+        <a asp-controller="Cuentas" asp-action="Registro">Registrarse</a>
+    </div>
+</footer>
+
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

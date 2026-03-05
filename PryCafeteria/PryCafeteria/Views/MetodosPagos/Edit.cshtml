@@ -1,0 +1,48 @@
+﻿@model PryCafeteria.Models.MetodosPago
+@{ ViewData["Title"] = "Editar Método de Pago"; }
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1 class="page-title">Editar Método de Pago</h1>
+        <p class="page-subtitle">Modifica el nombre del método de pago</p>
+    </div>
+    <a asp-action="Index" class="btn-cancel" style="width:auto;padding:0.52rem 1rem;">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver
+    </a>
+</div>
+
+<div style="max-width:480px;margin:0 auto;">
+    <div class="form-card">
+        <div class="form-card-header">
+            <div class="form-card-icon gold">
+                <i class="bi bi-credit-card-2-front" aria-hidden="true"></i>
+            </div>
+            <div>
+                <div class="form-card-title">Editar método de pago</div>
+                <div class="form-card-subtitle">Los cambios aplican de inmediato</div>
+            </div>
+        </div>
+        <div class="form-card-body">
+            <form asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+                <input type="hidden" asp-for="MetodoPagoId" />
+                <div class="field-group">
+                    <label asp-for="NombreMetodoPago" class="form-label">
+                        <i class="bi bi-credit-card" style="color:var(--green-800);margin-right:5px;" aria-hidden="true"></i>Nombre del método de pago
+                    </label>
+                    <input asp-for="NombreMetodoPago" class="form-control" placeholder="Ej: Efectivo, Yape…" />
+                    <span asp-validation-for="NombreMetodoPago" class="field-error"></span>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">
+                        <i class="bi bi-floppy" aria-hidden="true"></i> Guardar Cambios
+                    </button>
+                    <a asp-action="Index" class="btn-cancel">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }
